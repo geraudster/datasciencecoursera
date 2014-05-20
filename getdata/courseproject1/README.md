@@ -15,6 +15,7 @@ The dataset is split across several files:
 | features.txt | List of all features. It will be used to extract column names |
 
 Then there are two dataset (train and test), and foreach:
+
 | File    | Content |
 | ------- | ------- |
 | subject_{train,test}.txt | List of subject by observation |
