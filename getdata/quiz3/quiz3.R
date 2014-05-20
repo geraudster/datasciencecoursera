@@ -41,7 +41,8 @@ str(country)
 
 length(intersect(countryData$countryId, country$CountryCode))
 dataMerge <- merge(country, countryData, by.x="CountryCode", by.y="countryId", all=TRUE)
-top13 <- dataMerge[order(dataMerge$GPDInt, decreasing=TRUE),][13,]
+top13 <- dataMerge[order(dataMerge$rank, decreasing=TRUE),][13,]
+top13
 
 ## Q4
 mean(dataMerge[dataMerge$Income.Group %in% c("High income: OECD"), "rank"], na.rm=TRUE)

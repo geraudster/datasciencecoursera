@@ -28,4 +28,17 @@ library(XML)
 download.file('https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Frestaurants.xml', 'restaurants.xml', method='curl')
 restaurantDownloaded <- date()
 doc <- xmlTreeParse('restaurants.xml', useInternalNodes=TRUE)
+rootNode <- xmlRoot(doc)
+zipcodes <- xpathSApply(doc, '//zipcode', xmlValue)
+sum(zipcodes == "21231")
+
+# Q5
+install.packages("data.table")
+library(data.table)
+download.file('https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Fss06pid.csv', 'idaho.csv', method='curl')
+
+DT <- fread('idaho.csv')
+head(DT)
+
+DT[,mean(pwgtp15),by=SEX]
 
