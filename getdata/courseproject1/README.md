@@ -30,6 +30,9 @@ subject_{train,test}.txt, X_{train,test}.txt and y_{train,test}.txt have the sam
 Clone this repository, then open the script with R:
     source('run_analysis.R')
 
-You might need to install the following packages first: data.table
+You might need to install the following packages first: data.table, plyr.
 
 The data is downloaded from https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip, and unzip'ed in the `data/` directory.
+
+The run_analysis writes the result in a file tidyData.csv in the current working directory. Format of this file is 
+described in the CodeBook.md file.

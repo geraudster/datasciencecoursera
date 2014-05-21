@@ -39,8 +39,9 @@ meanAndStdColumns <- grep("-mean[(]|-std[(]", features$feature, value=TRUE)
 ## Then we filter on the mean and std columns
 allXSubset <- allX[,meanAndStdColumns]
 
-## Let's rename the column to remove parenthesis, replace - with .
-names(allXSubset) <- gsub("(.*)-(mean|std)[(][)]-?(.*)", "\\1.\\2.\\3",names(allXSubset))
+## Let's rename the column to remove parenthesis, replace - with ., remove BodyBody
+names(allXSubset) <- gsub("BodyBody", "Body", 
+    gsub("(.*)-(mean|std)[(][)]-?(.*)", "\\1.\\2.\\3",names(allXSubset)))
 
 # 3. Load activity names (WALKING, WALKING_UPSTAIRS, WALKING_DOWNSTAIRS, SITTING, STANDING, LAYING)
 activity <- read.delim('data/UCI HAR Dataset/activity_labels.txt', sep="", header=FALSE)
@@ -49,7 +50,9 @@ activity <- read.delim('data/UCI HAR Dataset/activity_labels.txt', sep="", heade
 allXSubset$activityLabel <- factor(allY$V1, levels= activity$V1, labels=activity$V2)
 
 # 5. Summarize data by calculating the means by activity then by subject
+library(plyr)
 allXSubset$subject <- allSubject$V1
 tidyData <- ddply(allXSubset, .(activityLabel, subject), numcolwise(mean))
 
-write.csv(tidyData, "tidyData.csv")
+## Write all in tidyData.csv
+write.csv(tidyData, "tidyData.csv", row.names=FALSE)

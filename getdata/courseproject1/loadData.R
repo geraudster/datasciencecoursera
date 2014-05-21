@@ -6,7 +6,7 @@ loadDataFile <- function() {
     }
     
     ## Download file if needed
-    if(!file.exists("data/household_power_consumption.zip")) {
+    if(!file.exists("data/UCI_HAR_Dataset.zip")) {
         download.file("https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip",
                       "data/UCI_HAR_Dataset.zip",
                       method='curl')
