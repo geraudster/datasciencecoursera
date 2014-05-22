@@ -11,7 +11,8 @@ SCC <- readRDS("data/Source_Classification_Code.rds")
 format(object.size(SCC), units="MB")
 
 # Prepare data
-NEISplit <- split(NEI$Emissions, factor(NEI$year))
+baltimoreData <- NEI[NEI$fips == "24510", c("year", "Emissions")]
+NEISplit <- split(baltimoreData$Emissions, factor(baltimoreData$year))
 sumByYear <- sapply(NEISplit, sum)
 
 # Plotting function
@@ -19,7 +20,7 @@ myPlot <- function() {
     plot(names(sumByYear), sumByYear, 
          xlab="Year",
          ylab="Total emissions (in tons)",
-         main="Evolution of Total Emissions from 1999 to 2008", 
+         main="Evolution of Total Emissions from 1999 to 2008 in Baltimore", 
          type="b", pch=19, lty=2)
 }
 
@@ -27,6 +28,6 @@ myPlot <- function() {
 myPlot()
 
 # Plot in png file
-png("plot1.png")
+png("plot2.png")
 myPlot()
 dev.off()

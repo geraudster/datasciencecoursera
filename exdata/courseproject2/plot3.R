@@ -11,22 +11,22 @@ SCC <- readRDS("data/Source_Classification_Code.rds")
 format(object.size(SCC), units="MB")
 
 # Prepare data
-NEISplit <- split(NEI$Emissions, factor(NEI$year))
-sumByYear <- sapply(NEISplit, sum)
+baltimoreData <- NEI[NEI$fips == "24510", c("year", "Emissions", "type")]
+baltimoreData <- transform(baltimoreData, type=factor(type), year=factor(year))
+str(baltimoreData)
 
+library(ggplot2)
 # Plotting function
 myPlot <- function() {
-    plot(names(sumByYear), sumByYear, 
-         xlab="Year",
-         ylab="Total emissions (in tons)",
-         main="Evolution of Total Emissions from 1999 to 2008", 
-         type="b", pch=19, lty=2)
+    ggplot(baltimoreData, aes(year, Emissions)) +
+    stat_summary(fun.y=sum, geom="bar", aes(color=type)) +
+    facet_grid(. ~ type)
 }
 
 # Plot on screen
 myPlot()
 
 # Plot in png file
-png("plot1.png")
+png("plot3.png", width=600, height=300)
 myPlot()
 dev.off()
