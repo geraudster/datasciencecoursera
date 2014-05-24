@@ -2,7 +2,11 @@
 #source("loadData.R")
 #loadDataFile("https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2FNEI_data.zip", "data/FNEI_data.zip")
 
-NEI <- readRDS("data/summarySCC_PM25.rds")
+## This test is for avoiding to reload data
+if(!exists("NEI")) {
+    print("Loading NEI data...")
+    NEI <- readRDS("data/summarySCC_PM25.rds")
+}
 # Print size in memory
 format(object.size(NEI), units="MB")
 
@@ -21,6 +25,8 @@ myPlot <- function() {
          ylab="Total emissions (in tons)",
          main="Evolution of Total Emissions from 1999 to 2008", 
          type="b", pch=19, lty=2)
+    abline(lm(sumByYear ~ as.numeric(names(sumByYear))), lwd = 2, col = "red")
+    legend("topright", lty = c(2,1), col = c("black", "red"), legend = c("Total Emission", "Trend"))
 }
 
 # Plot on screen
