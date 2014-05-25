@@ -1,3 +1,4 @@
+# Github: https://github.com/geraudster/datasciencecoursera/blob/master/exdata/courseproject2/plot6.R
 # Comment out the two lines below to retrieve the data
 #source("loadData.R")
 #loadDataFile("https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2FNEI_data.zip", "data/FNEI_data.zip")
