@@ -21,6 +21,8 @@ library(plyr)
 library(ggplot2)
 
 # Prepare data
+
+## Function for displaying long labels
 shortenString <- function(str, n = 40) {
     withoutPrefix <- gsub("Stationary Fuel Comb /", "", str)
     if(nchar(withoutPrefix) < n) {
@@ -31,17 +33,27 @@ shortenString <- function(str, n = 40) {
     }
 }
 
+## Retrieve SCC code corresponding to "Fuel Comb something Coal"
 coalCombustionLogical <- grep("Fuel Comb.*Coal", SCC$Short.Name, ignore.case=TRUE)
 coalCombustionData <- NEI[NEI$SCC %in% SCC[coalCombustionLogical, "SCC"], c("SCC", "Emissions", "year")]
+
+## Play with sqldf to sum by year
 coalEmissionSum <- sqldf("select Short_Name, year, sum(Emissions) as Emissions
                          from coalCombustionData join SCC on coalCombustionData.SCC = SCC.SCC
                          group by SCC.SCC, year")
+
+## Prepare labels to show in the graph:
+## SCCLabelFactor contains full labels for the legend
 SCCLabelFactor <- factor(coalEmissionSum$Short_Name)
+## SCCLabelFactorShort contains short labels for the facet titles
 SCCLabelFactorShort <- factor(coalEmissionSum$Short_Name, labels = sapply(levels(SCCLabelFactor), function(x) shortenString(x,n=40)))
 
+## Shorten the labels in the final data.frame
 coalEmissionSum <- transform(coalEmissionSum, Short_Name = SCCLabelFactorShort )
 
 # Plotting function
+## Here we use a facet_wrap, as we have only 9 Fuel Comb/Coal sources,
+## it will make a nice graph :)
 myPlot <- function() {
     ggplot(coalEmissionSum, aes(year, Emissions)) +
         geom_point(aes(color=Short_Name)) +

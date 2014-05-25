@@ -20,9 +20,14 @@ library(plyr)
 library(ggplot2)
 
 # Prepare data
+## According to http://www.epa.gov/ttn/chief/net/2008neiv3/2008_neiv3_tsd_draft.pdf, motor vehicles
+## belong to the category "Mobile Sources"
 motorVehicleSCC <- SCC[SCC$SCC.Level.One == "Mobile Sources", c("SCC", "Short.Name")]
 
+## filter on Baltimore
 baltimoreData <- NEI[NEI$fips == "24510" & NEI$SCC %in% motorVehicleSCC$SCC, c("year", "Emissions", "SCC")]
+
+## aggregate
 baltimoreDataSum <- ddply(baltimoreData, .(year), numcolwise(sum))
 
 # Plotting function

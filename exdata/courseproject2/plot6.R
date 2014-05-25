@@ -22,8 +22,11 @@ library(ggplot2)
 # Prepare data
 motorVehicleSCC <- SCC[SCC$SCC.Level.One == "Mobile Sources", c("SCC", "Short.Name")]
 
+## Extract and sum data
 baltimoreLAData <- NEI[NEI$fips %in% c("24510", "06037") & NEI$SCC %in% motorVehicleSCC$SCC, c("year", "Emissions", "SCC", "fips")]
 baltimoreLADataSum <- ddply(baltimoreLAData, .(year, fips), numcolwise(sum))
+
+## Prepare the labels
 baltimoreLADataSum$city[baltimoreLADataSum$fips == "24510"] <- "Baltimore"
 baltimoreLADataSum$city[baltimoreLADataSum$fips == "06037"] <- "Los Angeles"
 

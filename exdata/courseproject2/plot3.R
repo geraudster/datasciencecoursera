@@ -15,12 +15,15 @@ SCC <- readRDS("data/Source_Classification_Code.rds")
 # Print size in memory
 format(object.size(SCC), units="MB")
 
+# Use packages
+library(ggplot2)
+library(plyr)
+
 # Prepare data
 baltimoreData <- NEI[NEI$fips == "24510", c("year", "Emissions", "type")]
 baltimoreData <- transform(baltimoreData, type=factor(type))
 baltimoreDataSum <- ddply(baltimoreData, .(type, year), numcolwise(sum))
 
-library(ggplot2)
 # Plotting function
 myPlot <- function() {
     ggplot(baltimoreDataSum, aes(year, Emissions)) +
