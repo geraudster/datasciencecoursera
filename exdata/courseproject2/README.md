@@ -5,7 +5,7 @@
 ![plot3.png](plot3.png) 
 ![plot4.png](plot4.png) 
 ![plot5.png](plot5.png) 
-![plot5.png](plot5.png) 
+![plot6.png](plot6.png) 
 
 # Links
 
