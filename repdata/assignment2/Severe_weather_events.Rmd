@@ -1,0 +1,42 @@
+# Analysis of types of severe weather events that have most impacted the population and the economics in the United States from 1950 to 2011
+
+## Synopsis
+
+In this report we aim to describe the types of severe weather events that had the most impact on the population
+and on the economics.
+To perform this analysis, we used data from the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database.
+This database contains data from 1950 to 2011 tracks major storms and weather events (like avalanche, dense fog, tsunami...).
+
+TO BE CONTINUED...
+
+## Data Processing
+
+The data is located at https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2.
+The code book is here: https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf
+
+Let's retriev and uncompress the data from the Coursera's site:
+
+```{r}
+url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
+datadir <- "data"
+zipdatafile <- paste(datadir, "StormData.csv.bz2", sep="/")
+if(!file.exists(zipdatafile)) {
+    if(!file.exists(datadir)) { dir.create(datadir) }
+    download.file(url, destfile=zipdatafile, method="curl")
+}
+
+library(R.utils)
+datafile <- paste(datadir, "StormData.csv", sep="/")
+bunzip2(zipdatafile, destname=datafile, remove=FALSE, overwrite=TRUE)
+```
+
+Then we load the data in R
+```{r,cache=TRUE}
+data <- read.csv(datafile)
+```
+
+The data contains `r nrow(data)` observations of `r ncol(data)`. On our environment it takes `r format(object.size(data), units= "MB")` of memory.
+
+## Results
+
+
