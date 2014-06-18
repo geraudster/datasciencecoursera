@@ -9,14 +9,22 @@ This database contains data from 1950 to 2011 tracks major storms and weather ev
 
 TO BE CONTINUED...
 
+Before we start, we load the required libraries:
+
+``` {r}
+library(R.utils) # used for bunzip2
+library(ggplot2)
+library(plyr)
+```
+
 ## Data Processing
 
 The data is located at https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2.
 The code book is here: https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf
 
-Let's retriev and uncompress the data from the Coursera's site:
+Let's retrieve and uncompress the data from the Coursera's site:
 
-```{r}
+```{r,cache=TRUE}
 url <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
 datadir <- "data"
 zipdatafile <- paste(datadir, "StormData.csv.bz2", sep="/")
@@ -25,18 +33,37 @@ if(!file.exists(zipdatafile)) {
     download.file(url, destfile=zipdatafile, method="curl")
 }
 
-library(R.utils)
 datafile <- paste(datadir, "StormData.csv", sep="/")
 bunzip2(zipdatafile, destname=datafile, remove=FALSE, overwrite=TRUE)
 ```
 
-Then we load the data in R
+Then we load the data in R (might take several minutes...):
 ```{r,cache=TRUE}
 data <- read.csv(datafile)
 ```
 
-The data contains `r nrow(data)` observations of `r ncol(data)`. On our environment it takes `r format(object.size(data), units= "MB")` of memory.
+The data contains `r nrow(data)` observations of `r ncol(data)` variables. On our environment it takes `r format(object.size(data), units= "MB")` of memory.
+
+Here is a small insight of what the data look like:
+```{r}
+head(data)
+str(data)
+summary(data$EVTYPE)
+```
+
+Next, we'll plot the 10 most recensed events:
+```{r,fig.width=9}
+sumByEvt <- ddply(data, .(EVTYPE), summarize, count = length(EVTYPE))
+ggplot(sumByEvt[order(sumByEvt$count, decreasing=TRUE),][1:10,], aes(x=EVTYPE, y=count, fill=EVTYPE)) +
+  geom_histogram(stat="identity") +
+  coord_flip()
+```
 
 ## Results
 
+## Supplementary info
+
+```{r}
+sessionInfo()
+```
 
