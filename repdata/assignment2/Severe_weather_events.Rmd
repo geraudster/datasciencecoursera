@@ -19,8 +19,9 @@ library(plyr)
 
 ## Data Processing
 
-The data is located at https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2.
-The code book is here: https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf
+* The data is located at https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2.
+* The description is here: https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf
+* The code book is here: http://www1.ncdc.noaa.gov/pub/data/swdi/stormevents/csvfiles/Storm-Data-Export-Format.docx
 
 Let's retrieve and uncompress the data from the Coursera's site:
 
@@ -51,6 +52,68 @@ str(data)
 summary(data$EVTYPE)
 ```
 
+The interesting fields in this datasets are:
+
+* EVTYPE: the type of severe event
+* FATALITIES and INJURIES: the fatalities and injuries due to the event
+* PROPDMG: estimated amount of damage to property (in $)
+* CROPDMG: estimated amount of damage to crops (in $)
+* PROPDMGEXP: the exponent to be applied. Levels are:
+```{r}
+levels(data$PROPDMGEXP)
+```
+
+* CROPDMGEXP: the exponent to be applied. Levels are:
+```{r}
+levels(data$CROPDMGEXP)
+```
+
+Concerning the exponents, we will ignore special characters (-, ?, +)
+* B = billions
+* M/m = millions
+* K/k = thousands
+* H/h = hundreds
+* numeric value = $10^\\value$
+
+Let's create a function to calculate the correct amount given an exponent:
+```{r}
+# first we define a correspondance table for the unit
+expUnitTable <- data.frame(unit=c("h", "k", "m", "b"), weight=c(10^2, 10^3, 10^6, 10^9))
+
+# the function itself
+calculateExponent <- function(value, exponent) {
+    # we set the default value for a weight to 1, so we will keep the value as is
+    weight <- 1
+    # check if the exponent is a number
+    if(!is.na(as.numeric(exponent))) {
+        weight <- 10 ^ as.numeric(exponent)
+    } else {
+        # get the weight associated with the unit. If not present, we got a numeric(0)
+        weight <- expUnitTable$weight[expUnitTable$unit == tolower(exponent)]
+        
+        # if the unit is not in the table, reset the default value
+        if(length(weight) == 0) {
+            weight <- 1;
+        }
+    }
+    value * weight
+}
+```
+
+We prepare two tidy datasets: one for analysing the most harmful events, and the othe for analysing
+the greatest economic consequences:
+```{r,cache=TRUE}
+tidyDataForHarm <- data[data$FATALITIES != 0 & data$INJURIES != 0, c("EVTYPE", "FATALITIES", "INJURIES")]
+tidyDataForEconomics <- data[data$CROPDMG != 0 & data$PROPDMG != 0, c("EVTYPE", "CROPDMG", "CROPDMGEXP", "PROPDMG", "PROPDMGEXP")]
+# Then we add 2 columns to our dataset that compute a usable form of the amount of damage:
+tidyDataForEconomics$cropDmgAmount <- mapply(calculateExponent,
+                                             as.numeric(tidyDataForEconomics$CROPDMG),
+                                             tidyDataForEconomics$CROPDMGEXP)
+tidyDataForEconomics$propDmgAmount <- mapply(calculateExponent,
+                                             as.numeric(tidyDataForEconomics$PROPDMG),
+                                             tidyDataForEconomics$PROPDMGEXP)
+```
+
 Next, we'll plot the 10 most recensed events:
 ```{r,fig.width=9}
 sumByEvt <- ddply(data, .(EVTYPE), summarize, count = length(EVTYPE))
@@ -60,6 +123,10 @@ ggplot(sumByEvt[order(sumByEvt$count, decreasing=TRUE),][1:10,], aes(x=EVTYPE, y
 ```
 
 ## Results
+
+### Most harmful types of storm events
+
+
 
 ## Supplementary info
 
