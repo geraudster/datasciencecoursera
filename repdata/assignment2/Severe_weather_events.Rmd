@@ -15,6 +15,7 @@ Before we start, we load the required libraries:
 library(R.utils) # used for bunzip2
 library(ggplot2)
 library(plyr)
+library(reshape)
 ```
 
 ## Data Processing
@@ -100,11 +101,11 @@ calculateExponent <- function(value, exponent) {
 }
 ```
 
-We prepare two tidy datasets: one for analysing the most harmful events, and the othe for analysing
+We prepare two tidy datasets: one for analysing the most harmful events, and the other for analysing
 the greatest economic consequences:
 ```{r,cache=TRUE}
-tidyDataForHarm <- data[data$FATALITIES != 0 & data$INJURIES != 0, c("EVTYPE", "FATALITIES", "INJURIES")]
-tidyDataForEconomics <- data[data$CROPDMG != 0 & data$PROPDMG != 0, c("EVTYPE", "CROPDMG", "CROPDMGEXP", "PROPDMG", "PROPDMGEXP")]
+tidyDataForHarm <- data[c("EVTYPE", "FATALITIES", "INJURIES")]
+tidyDataForEconomics <- data[c("EVTYPE", "CROPDMG", "CROPDMGEXP", "PROPDMG", "PROPDMGEXP")]
 # Then we add 2 columns to our dataset that compute a usable form of the amount of damage:
 tidyDataForEconomics$cropDmgAmount <- mapply(calculateExponent,
                                              as.numeric(tidyDataForEconomics$CROPDMG),
@@ -125,6 +126,24 @@ ggplot(sumByEvt[order(sumByEvt$count, decreasing=TRUE),][1:10,], aes(x=EVTYPE, y
 ## Results
 
 ### Most harmful types of storm events
+
+We'll use the tidyDataForHarm dataset. 
+
+First we perform some aggregation based on the EVTYPE:
+```{r}
+aggregatesForHarm <- ddply(tidyDataForHarm, .(EVTYPE),
+                           summarize,
+                           fatalitiesTotal=sum(FATALITIES, na.rm=TRUE),
+                           injuriesTotal=sum(INJURIES, na.rm=TRUE))
+
+aggregatesForHarm$total <- aggregatesForHarm$fatalitiesTotal + aggregatesForHarm$injuriesTotal
+top10 <- aggregatesForHarm[order(aggregatesForHarm$total, decreasing=TRUE),][1:10,"EVTYPE"]
+
+meltAggregatesHarmful <- melt(aggregatesForHarm, id=c("EVTYPE", "total"))
+meltAggregatesHarmful <- transform(meltAggregatesHarmful, EVTYPE = reorder(EVTYPE, total))
+top <- head(meltAggregatesHarmful[order(meltAggregatesHarmful$total, decreasing=TRUE),], 40)
+ggplot(top[3:nrow(top),], aes(x=EVTYPE, fill=variable, y=value)) + geom_histogram(stat="identity") + coord_flip()
+```
 
 
 
