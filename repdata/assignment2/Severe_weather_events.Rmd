@@ -142,10 +142,51 @@ top10 <- aggregatesForHarm[order(aggregatesForHarm$total, decreasing=TRUE),][1:1
 meltAggregatesHarmful <- melt(aggregatesForHarm, id=c("EVTYPE", "total"))
 meltAggregatesHarmful <- transform(meltAggregatesHarmful, EVTYPE = reorder(EVTYPE, total))
 top <- head(meltAggregatesHarmful[order(meltAggregatesHarmful$total, decreasing=TRUE),], 40)
-ggplot(top[3:nrow(top),], aes(x=EVTYPE, fill=variable, y=value)) + geom_histogram(stat="identity") + coord_flip()
+
+# ignore the 1st
+g1 <- ggplot(top[3:nrow(top),], aes(x=EVTYPE, fill=variable, y=value)) + geom_histogram(stat="identity") + coord_flip()
+g1
+# 
+g2 <- ggplot(top, aes(x=EVTYPE, fill=variable, y=value)) + geom_histogram(stat="identity") + coord_flip()
+
+g2
 ```
 
+### Most economical impact
 
+```{r}
+aggregatesForEco <- ddply(tidyDataForEconomics, .(EVTYPE),
+                           summarize,
+                           cropDmgAmountTotal=sum(cropDmgAmount, na.rm=TRUE),
+                           propDmgAmountTotal=sum(propDmgAmount, na.rm=TRUE))
+
+#aggregatesForEco$total <- aggregatesForEco$cropDmgAmountTotal + aggregatesForEco$propDmgAmountTotal
+
+
+meltAggregatesEco <- melt(aggregatesForEco, id="EVTYPE")
+meltAggregatesEcoSorted <- meltAggregatesEco[order(meltAggregatesEco$value, decreasing=TRUE),]
+  
+cropDamageTop10 <- meltAggregatesEcoSorted[meltAggregatesEcoSorted$variable == "cropDmgAmountTotal",][1:10,]
+cropDamageTop10 <- transform(cropDamageTop10, EVTYPE = reorder(EVTYPE, value))
+propDamageTop10 <- meltAggregatesEcoSorted[meltAggregatesEcoSorted$variable == "propDmgAmountTotal",][1:10,]
+propDamageTop10 <- transform(propDamageTop10, EVTYPE = reorder(EVTYPE, value))
+
+meltDamageTop10 <- rbind(cropDamageTop10, propDamageTop10)
+
+#meltAggregatesEco <- transform(meltAggregatesEco, EVTYPE = reorder(EVTYPE, value))
+#top <- head(meltAggregatesEco[order(meltAggregatesEco$total, decreasing=TRUE),], 40)
+
+# ignore the 1st
+g1 <- ggplot(meltDamageTop10, aes(x=EVTYPE, fill=variable, y=value)) + geom_histogram(stat="identity") + coord_flip() + facet_grid(variable ~ ., scales = "free_y")
+g1
+# Crop damage 
+g2 <- ggplot(cropDamageTop10, aes(x=EVTYPE, fill=EVTYPE, y=value)) + geom_histogram(stat="identity") + coord_flip()
+g2
+# Prop damage
+g3 <- ggplot(propDamageTop10, aes(x=EVTYPE, fill=EVTYPE, y=value)) + geom_histogram(stat="identity") + coord_flip()
+
+g3
+```
 
 ## Supplementary info
 
