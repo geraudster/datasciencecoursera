@@ -16,6 +16,7 @@ library(R.utils) # used for bunzip2
 library(ggplot2)
 library(plyr)
 library(reshape)
+source("multiplot.R")
 ```
 
 ## Data Processing
@@ -102,25 +103,37 @@ calculateExponent <- function(value, exponent) {
 ```
 
 We prepare two tidy datasets: one for analysing the most harmful events, and the other for analysing
-the greatest economic consequences:
+the greatest economic consequences.
 ```{r,cache=TRUE}
-tidyDataForHarm <- data[c("EVTYPE", "FATALITIES", "INJURIES")]
-tidyDataForEconomics <- data[c("EVTYPE", "CROPDMG", "CROPDMGEXP", "PROPDMG", "PROPDMGEXP")]
-# Then we add 2 columns to our dataset that compute a usable form of the amount of damage:
-tidyDataForEconomics$cropDmgAmount <- mapply(calculateExponent,
-                                             as.numeric(tidyDataForEconomics$CROPDMG),
-                                             tidyDataForEconomics$CROPDMGEXP)
-tidyDataForEconomics$propDmgAmount <- mapply(calculateExponent,
-                                             as.numeric(tidyDataForEconomics$PROPDMG),
-                                             tidyDataForEconomics$PROPDMGEXP)
+dataForHarm <- data[c("EVTYPE", "FATALITIES", "INJURIES")]
+dataForEconomics <- data[c("EVTYPE", "CROPDMG", "CROPDMGEXP", "PROPDMG", "PROPDMGEXP")]
+```
+
+As we are interesting in finding the most harmful events, we can clean 
+our datasets by removing all zero or undefined values in the fields.
+```{r}
+tidyDataForHarm <- dataForHarm[ dataForHarm$FATALITIES != 0 & dataForHarm$INJURIES != 0,]
+nrow(tidyDataForHarm)
+
+tidyDataForEconomics <- dataForEconomics [ dataForEconomics$CROPDMG != 0 & dataForEconomics$PROPDMG != 0,]
+nrow(tidyDataForEconomics)
+```
+
+Then we add 2 columns to the economics dataset that compute a usable form of the amount of damage:
+```{r}
+tidyDataForEconomics <- transform(tidyDataForEconomics,
+                                  cropDmgAmount = mapply(calculateExponent,
+                                                         as.numeric(CROPDMG),
+                                                         CROPDMGEXP),
+                                  propDmgAmount = mapply(calculateExponent,
+                                                         as.numeric(PROPDMG),
+                                                         PROPDMGEXP))
 ```
 
 Next, we'll plot the 10 most recensed events:
 ```{r,fig.width=9}
 sumByEvt <- ddply(data, .(EVTYPE), summarize, count = length(EVTYPE))
-ggplot(sumByEvt[order(sumByEvt$count, decreasing=TRUE),][1:10,], aes(x=EVTYPE, y=count, fill=EVTYPE)) +
-  geom_histogram(stat="identity") +
-  coord_flip()
+sumByEvt[order(sumByEvt$count, decreasing=TRUE),][1:10,]
 ```
 
 ## Results
@@ -137,19 +150,16 @@ aggregatesForHarm <- ddply(tidyDataForHarm, .(EVTYPE),
                            injuriesTotal=sum(INJURIES, na.rm=TRUE))
 
 aggregatesForHarm$total <- aggregatesForHarm$fatalitiesTotal + aggregatesForHarm$injuriesTotal
-top10 <- aggregatesForHarm[order(aggregatesForHarm$total, decreasing=TRUE),][1:10,"EVTYPE"]
 
 meltAggregatesHarmful <- melt(aggregatesForHarm, id=c("EVTYPE", "total"))
 meltAggregatesHarmful <- transform(meltAggregatesHarmful, EVTYPE = reorder(EVTYPE, total))
-top <- head(meltAggregatesHarmful[order(meltAggregatesHarmful$total, decreasing=TRUE),], 40)
+top <- head(meltAggregatesHarmful[order(meltAggregatesHarmful$total, decreasing=TRUE),], 20)
 
-# ignore the 1st
-g1 <- ggplot(top[3:nrow(top),], aes(x=EVTYPE, fill=variable, y=value)) + geom_histogram(stat="identity") + coord_flip()
-g1
-# 
-g2 <- ggplot(top, aes(x=EVTYPE, fill=variable, y=value)) + geom_histogram(stat="identity") + coord_flip()
-
-g2
+gHarmful <- ggplot(top, aes(x=EVTYPE, fill=variable, y=value)) +
+    geom_histogram(stat="identity") +
+    coord_flip(ylim=c(0,10000)) +
+    geom_text(data=top[2,], aes(x=EVTYPE, y=8000, label=paste(value, "injuries")))
+gHarmful
 ```
 
 ### Most economical impact
