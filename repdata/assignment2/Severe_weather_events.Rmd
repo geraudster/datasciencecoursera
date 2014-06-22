@@ -2,12 +2,17 @@
 
 ## Synopsis
 
-In this report we aim to describe the types of severe weather events that had the most impact on the population
-and on the economics.
+In this report we aim to describe the types of severe weather events that had the most impact on the population and on the economics in the U.S. from 1950 to 2011.
 To perform this analysis, we used data from the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database.
-This database contains data from 1950 to 2011 tracks major storms and weather events (like avalanche, dense fog, tsunami...).
+This database contains data from 1950 to 2011 that tracks major storms and weather events (like avalanche, dense fog, tsunami...).
+More specifically, it contains data on public health impact (fatalities and injuries) and economics (crop and properties damages in dollars).
+After cleaning the data, we will focus on the 10 most important types of events for each aspects (fatalities and injuries, crop damages, properties damages).
+The data shows that health consequences are in the order of several hundred thousands (fatalities and injuries) and economical damages are in the order of hundreds of billions dollars.
+The study also shows that storm events have different consequences on the public health and economics.
+On the public health side, Tornadoes and excessive heat are most harmful and
+on the economics side, floods and ouragans have greater consequences. 
 
-TO BE CONTINUED...
+## Loading libraries
 
 Before we start, we load the required libraries:
 
@@ -16,6 +21,7 @@ library(R.utils) # used for bunzip2
 library(ggplot2)
 library(plyr)
 library(reshape)
+library(scales)
 source("multiplot.R")
 ```
 
@@ -24,6 +30,8 @@ source("multiplot.R")
 * The data is located at https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2.
 * The description is here: https://d396qusza40orc.cloudfront.net/repdata%2Fpeer2_doc%2Fpd01016005curr.pdf
 * The code book is here: http://www1.ncdc.noaa.gov/pub/data/swdi/stormevents/csvfiles/Storm-Data-Export-Format.docx
+
+### Loading data
 
 Let's retrieve and uncompress the data from the Coursera's site:
 
@@ -49,12 +57,10 @@ The data contains `r nrow(data)` observations of `r ncol(data)` variables. On ou
 
 Here is a small insight of what the data look like:
 ```{r}
-head(data)
 str(data)
-summary(data$EVTYPE)
 ```
 
-The interesting fields in this datasets are:
+The interesting fields in this dataset are:
 
 * EVTYPE: the type of severe event
 * FATALITIES and INJURIES: the fatalities and injuries due to the event
@@ -70,12 +76,14 @@ levels(data$PROPDMGEXP)
 levels(data$CROPDMGEXP)
 ```
 
+### Exponents
+
 Concerning the exponents, we will ignore special characters (-, ?, +)
 * B = billions
 * M/m = millions
 * K/k = thousands
 * H/h = hundreds
-* numeric value = $10^\\value$
+* numeric value = 10^value
 
 Let's create a function to calculate the correct amount given an exponent:
 ```{r}
@@ -86,12 +94,13 @@ expUnitTable <- data.frame(unit=c("h", "k", "m", "b"), weight=c(10^2, 10^3, 10^6
 calculateExponent <- function(value, exponent) {
     # we set the default value for a weight to 1, so we will keep the value as is
     weight <- 1
+    exponentChar <- tolower(exponent)
     # check if the exponent is a number
-    if(!is.na(as.numeric(exponent))) {
-        weight <- 10 ^ as.numeric(exponent)
+    if(suppressWarnings(!is.na(as.numeric(exponentChar)))) {
+        weight <- 10 ^ as.numeric(exponentChar)
     } else {
         # get the weight associated with the unit. If not present, we got a numeric(0)
-        weight <- expUnitTable$weight[expUnitTable$unit == tolower(exponent)]
+        weight <- expUnitTable$weight[expUnitTable$unit == tolower(exponentChar)]
         
         # if the unit is not in the table, reset the default value
         if(length(weight) == 0) {
@@ -101,6 +110,8 @@ calculateExponent <- function(value, exponent) {
     value * weight
 }
 ```
+
+### Tidy dataset preparation
 
 We prepare two tidy datasets: one for analysing the most harmful events, and the other for analysing
 the greatest economic consequences.
@@ -120,7 +131,7 @@ nrow(tidyDataForEconomics)
 ```
 
 Then we add 2 columns to the economics dataset that compute a usable form of the amount of damage:
-```{r}
+```{r,cache=TRUE}
 tidyDataForEconomics <- transform(tidyDataForEconomics,
                                   cropDmgAmount = mapply(calculateExponent,
                                                          as.numeric(CROPDMG),
@@ -130,17 +141,16 @@ tidyDataForEconomics <- transform(tidyDataForEconomics,
                                                          PROPDMGEXP))
 ```
 
-Next, we'll plot the 10 most recensed events:
-```{r,fig.width=9}
-sumByEvt <- ddply(data, .(EVTYPE), summarize, count = length(EVTYPE))
-sumByEvt[order(sumByEvt$count, decreasing=TRUE),][1:10,]
-```
+There are **`r length(levels(data$EVTYPE))`** different values of EVTYPE. It does not match the code book which describes 48 categories.
+This difference can be explained by the fact that earlier values were not correctly normalized, and the
+informations might be slightly incorrect.
+For the purpose of this study we will not transform thos EVTYPEs and will takes the data as-is.
 
 ## Results
 
 ### Most harmful types of storm events
 
-We'll use the tidyDataForHarm dataset. 
+We will use the tidyDataForHarm dataset and will find the 10 most harmful events (total of injuries plus fatalities).
 
 First we perform some aggregation based on the EVTYPE:
 ```{r}
@@ -149,57 +159,107 @@ aggregatesForHarm <- ddply(tidyDataForHarm, .(EVTYPE),
                            fatalitiesTotal=sum(FATALITIES, na.rm=TRUE),
                            injuriesTotal=sum(INJURIES, na.rm=TRUE))
 
+# Let's compute the total of injuries and fatalities
 aggregatesForHarm$total <- aggregatesForHarm$fatalitiesTotal + aggregatesForHarm$injuriesTotal
+```
 
+Then we prepare a "long" dataset with the two group of variables:
+```{r}
 meltAggregatesHarmful <- melt(aggregatesForHarm, id=c("EVTYPE", "total"))
 meltAggregatesHarmful <- transform(meltAggregatesHarmful, EVTYPE = reorder(EVTYPE, total))
 top <- head(meltAggregatesHarmful[order(meltAggregatesHarmful$total, decreasing=TRUE),], 20)
+top <- transform(top, variable = factor(variable, levels=c("fatalitiesTotal", "injuriesTotal"), labels=c("Fatalities", "Injuries")))
+```
 
+The top10 is shown below (the TORNADO injuries is far more greater than the other EVTYPEs, so we decided 
+to cut the bar to have a better glimpse at the other EVTYPEs) :
+```{r,fig.width=9}
 gHarmful <- ggplot(top, aes(x=EVTYPE, fill=variable, y=value)) +
     geom_histogram(stat="identity") +
     coord_flip(ylim=c(0,10000)) +
-    geom_text(data=top[2,], aes(x=EVTYPE, y=8000, label=paste(value, "injuries")))
+    geom_text(data=top[2,], aes(x=EVTYPE, y=8000, label=paste(value, "injuries"))) +
+    ggtitle(label="10 most harmful events in the U.S. from 1950 to 2011") +
+    ylab("Total of injuries + fatalities") +
+    xlab("Event type") +
+    scale_fill_discrete(name="")
 gHarmful
 ```
 
+So here we can see that Tornadoes is the most harmful event, with `r top$value[1]` fatalities and `r format(top$value[2], scientific=FALSE)` injuries. Then comes the excessive heat (`r top$value[3]` fatalities and `r format(top$value[4], scientific=FALSE)` injuries) and flood (`r top$value[5]` fatalities and `r format(top$value[6], scientific=FALSE)` injuries).
+
 ### Most economical impact
 
+For this part, we will distinguish the damages caused to the crops and the damages caused to the properties, 
+because they are in different order of magnitude.
+
+We start by aggregating the damages to crop and properties by EVTYPE:
 ```{r}
 aggregatesForEco <- ddply(tidyDataForEconomics, .(EVTYPE),
                            summarize,
                            cropDmgAmountTotal=sum(cropDmgAmount, na.rm=TRUE),
                            propDmgAmountTotal=sum(propDmgAmount, na.rm=TRUE))
+```
 
-#aggregatesForEco$total <- aggregatesForEco$cropDmgAmountTotal + aggregatesForEco$propDmgAmountTotal
-
-
+Then we prepare a long dataset:
+```{r}
 meltAggregatesEco <- melt(aggregatesForEco, id="EVTYPE")
 meltAggregatesEcoSorted <- meltAggregatesEco[order(meltAggregatesEco$value, decreasing=TRUE),]
-  
+```
+
+Next we retrieve the top 10 most economical damages:
+```{r}
 cropDamageTop10 <- meltAggregatesEcoSorted[meltAggregatesEcoSorted$variable == "cropDmgAmountTotal",][1:10,]
 cropDamageTop10 <- transform(cropDamageTop10, EVTYPE = reorder(EVTYPE, value))
 propDamageTop10 <- meltAggregatesEcoSorted[meltAggregatesEcoSorted$variable == "propDmgAmountTotal",][1:10,]
 propDamageTop10 <- transform(propDamageTop10, EVTYPE = reorder(EVTYPE, value))
-
-meltDamageTop10 <- rbind(cropDamageTop10, propDamageTop10)
-
-#meltAggregatesEco <- transform(meltAggregatesEco, EVTYPE = reorder(EVTYPE, value))
-#top <- head(meltAggregatesEco[order(meltAggregatesEco$total, decreasing=TRUE),], 40)
-
-# ignore the 1st
-g1 <- ggplot(meltDamageTop10, aes(x=EVTYPE, fill=variable, y=value)) + geom_histogram(stat="identity") + coord_flip() + facet_grid(variable ~ ., scales = "free_y")
-g1
-# Crop damage 
-g2 <- ggplot(cropDamageTop10, aes(x=EVTYPE, fill=EVTYPE, y=value)) + geom_histogram(stat="identity") + coord_flip()
-g2
-# Prop damage
-g3 <- ggplot(propDamageTop10, aes(x=EVTYPE, fill=EVTYPE, y=value)) + geom_histogram(stat="identity") + coord_flip()
-
-g3
 ```
+
+Finally, below is the graph for crop damage:
+```{r,fig.width=9}
+# Crop damage 
+gCropDamage <- ggplot(cropDamageTop10, aes(x=EVTYPE, fill=EVTYPE, y=value / 1000 / 1000)) +
+    geom_histogram(stat="identity") +
+    coord_flip() +
+    ggtitle("10 most damages on crop events in the U.S. from 1950 to 2011") +
+    ylab("Amount of damage in Millions of $") +
+    xlab("Event type") +
+    scale_fill_discrete(name="") +
+    scale_y_continuous(labels= comma)
+    
+gCropDamage
+```
+
+Here we can see that the event that has most consequences on crop is the River Flood (`r format(cropDamageTop10$value[1], scientific=FALSE, big.mark=",")` $). Then come the Ice Storm (`r format(cropDamageTop10$value[2], scientific=FALSE, big.mark=",")` $) and the Flood (`r format(cropDamageTop10$value[3], scientific=FALSE, big.mark=",")` $).
+
+Then, below is the graph for property damage. We have cut the FLOOD bar as it is far larger from
+the other values:
+```{r,fig.width=9}
+# Prop damage
+gPropDamage <- ggplot(propDamageTop10, aes(x=EVTYPE, fill=EVTYPE, y=value / 1000 / 1000 / 1000)) +
+    geom_histogram(stat="identity") +
+    coord_flip(ylim=c(0,40)) +
+    geom_text(data=propDamageTop10[1,],
+              aes(x=EVTYPE,
+                  y=20,
+                  label=paste(round(value / 1000 / 1000 / 1000, 0), "Billions $"))) +
+    ggtitle("10 most damages on property events in the U.S. from 1950 to 2011") +
+    ylab("Amount of damage in Billions of $") +
+    xlab("Event type") +
+    scale_fill_discrete(name="") +
+    scale_y_continuous(labels= comma)
+
+gPropDamage
+```
+
+Here we can see that Flood has the most consequences on properties with `r propDamageTop10$value[1] / 1000 / 1000 / 1000` Billions of $. Next come Hurricane/Typhoon and Typhoon.
+
+## Further improvements
+
+As we can see, a cleaning of the event types could be done to improve the categorization of data. This has not been done in the scope of this study due to lack of time. But this study is a first step to a more deeper analysis and one of the further steps would be to represent the data on a map and see which states are more impacted by weather events.
 
 ## Supplementary info
 
+Below are our environment settings:
 ```{r}
 sessionInfo()
 ```
