@@ -1,0 +1,74 @@
+# Analysis of relationship between car transmission and fuel consumption
+
+## Synopsis
+
+We will use the mtcars dataset to determine the kind of transmission (automatic/manual)
+that has the most Miles per Gallon, and in which proportion.
+
+## Data processing
+
+We will use the mtcars dataset included in the R core.
+
+Format is: 
+    
+* TODO
+
+First we load the data:
+
+```{r}
+data(mtcars)
+names(mtcars)
+nrow(mtcars)
+head(mtcars)
+```
+
+Next we prepare the data (to have proper label when drawing plots):
+```{r}
+mtcars <- transform(mtcars, transmission = factor(mtcars$am,
+                                                     levels = c(0,1),
+                                                     labels = c("Automatic", "Manual")))
+```
+
+## Exploratory analysis
+
+We would like to determine if there is a relationship between transmission an mpg.
+
+```{r}
+boxplot(mpg~transmission,data=mtcars, main="Car Milage Data",
+   xlab="Transmission type", ylab="Miles Per Gallon") 
+```
+
+So it seems there is a relation between transmission and mpg: cars use more fuel when
+transmission is manual than automatic
+
+```{r}
+cor(mtcars$am, mtcars$mpg)
+
+```
+
+## Regression model
+
+```{r}
+model <- lm(mpg~am, data=mtcars)
+model.summary <- summary(model)
+model.summary
+```
+
+This model shows that:
+
+* the coefficient is statistically significant (with a p-value of `r model.summary$coefficients[2,4]`)
+* transmission explains `r model.summary$r.squared * 100`% of the variance
+* when the transmision change from automatic (0) to manual(1), there is an increase in mpg of
+`r model$coefficients['am']`
+
+Next the confidence interval:
+
+```{r}
+confint(model)
+```
+
+Let's plot the residuals:
+
+```{r}
+plot(resid(model))
+```
