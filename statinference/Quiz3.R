@@ -38,4 +38,4 @@ m.pla <- 1
 s.pla <- 1.8
 
 sp <- sqrt(((n-1) * s.new ^2 + (n-1) * s.pla ^2)/(n + n -2))
-round(m.pla - m.new + c(-1, 1) * qt(0.95, 2 * n - 2) * sp * (1/n + 1/n)^0.5, 3)
+round(m.new - m.pla + c(-1, 1) * qt(0.95, 2 * n - 2) * sp * (1/n + 1/n)^0.5, 3)
