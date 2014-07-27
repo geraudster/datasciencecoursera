@@ -71,6 +71,7 @@ model.2 <- lm(mpg ~ transmission + factor(cyl), mtcars)
 model.2.summary <- summary(model.2)
 ```
 
+Summary of different models are in the appendix.
 Here we can see that transmission coefficient is no more significant (with a p-value of `r model.2.summary$coefficients[2,4]`). This model also shows that:
 
 * the coefficients for cylinder are statistically significant (with a p-value of `r model.2.summary$coefficients[3,4]` for 6-cyl and `r model.2.summary$coefficients[4,4]`)
@@ -112,7 +113,7 @@ So we can conclude that there is a difference between automatic and manual trans
 
 ### Data excerpt
 
-```{r}
+```{r,echo=FALSE}
 head(mtcars)
 ```
 
@@ -139,7 +140,7 @@ The confidence interval being negative (`r round(grouptest$conf.int[c(1,2)], 4)`
 
 ### Residuals of model predicting mpg according to transmission
 
-```{r,echo=FALSE}
+```{r,echo=FALSE, fig.height=4, fig.width=4}
 plot(resid(model.1), col = 5+ mtcars$am, main="Redisual plots of first model")
 abline(0,0, col="blue", lw="3")
 legend("topright",legend=c("Automatic", "Manual"), col=5 + c(0,1), pch=1)
@@ -148,9 +149,15 @@ legend("topright",legend=c("Automatic", "Manual"), col=5 + c(0,1), pch=1)
 
 ### Correlation matrix
 
-```{r, fig.height=4, fig.width=4}
+```{r, fig.height=3, fig.width=3, echo=FALSE}
 pairs(mtcars[,c("mpg", "am", "wt", "cyl")], panel = panel.smooth, col=3+mtcars$am)
 ```
 
+### Model summaries
 
+```{r, echo=FALSE}
+model.1.summary
+model.2.summary
+model.3.summary
+```
 
