@@ -1,0 +1,40 @@
+
+Loading libraries
+```{r}
+#install.packages('caret')
+#install.packages('kernlab')
+#install.packages('e1071', dependencies=TRUE)
+library(caret)
+library(kernlab)
+data(spam)
+set.seed(32323)
+
+inTrain <- createDataPartition(y=spam$type, p=0.75, list=FALSE)
+
+training <- spam[inTrain,]
+testing <- spam[-inTrain,]
+
+dim(training)
+dim(testing)
+```
+
+1st attempt to fit a glm model:
+
+```{r, cache=TRUE}
+set.seed(32343)
+modelFit <- train(type ~ ., data=training, method="glm")
+modelFit
+```
+
+Try some predictions with the model:
+
+```{r}
+predictions <- predict(modelFit, newdata=testing)
+predictions
+```
+
+Evalute the model:
+
+```{r}
+confusionMatrix(predictions, testing$type)
+```
