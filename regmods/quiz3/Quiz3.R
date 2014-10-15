@@ -13,7 +13,9 @@ model.2 <- lm(mpg ~ factor(cyl), data=mtcars)
 summary(model.2)
 
 # Q3
-anova(model.2, model.1)
+model.3 <- lm(mpg ~ factor(cyl) + wt + factor(cyl)*wt, data=mtcars)
+summary(model.3)
+anova(model.3, model.1)
 anova(model.2, model.1,test="Chisq")
 
 # Q4

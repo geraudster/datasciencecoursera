@@ -1,29 +1,31 @@
-# Analysis of relationship between car transmission and fuel consumption
-
-## Synopsis
+---
+title: "Analysis of relationship between car transmission and fuel consumption"
+output: pdf_document
+---
+```{r setup, include=FALSE}
+library(knitr)
+opts_chunk$set(dev = 'pdf', dpi = 92)
+```
+## Executive summary
 
 We will use the mtcars dataset to determine the kind of transmission (automatic/manual)
-that has the most Miles per Gallon, and in which proportion.
+that has the most Miles per Gallon, and in which proportion. After a short description of the dataset, we will prepare the data. Then t-test group comparison will confirm the difference between the two groups.
+After, we will create a model to try to predict mpg according to transmission. Finally, we will try to improve the model and see that there are other variables that are better predictor than only the transmission.
 
-## Data processing
+## Data description
 
-We will use the mtcars dataset included in the R core.
-
-Format is: 
-    
-* TODO
-
-First we load the data:
-
-```{r}
+```{r, echo=FALSE}
 data(mtcars)
-names(mtcars)
-nrow(mtcars)
-head(mtcars)
 ```
+We will use the mtcars dataset included in the R core. The dataset contains `r dim(mtcars)[1]` observations, and `r dim(mtcars)[2]` variables. You will find an excerpt of the dataset in appendix. Interesting variables in this dataset are:
 
-Next we prepare the data (to have proper label when drawing plots):
-```{r}
+* mpg: Miles/(US) gallon, it will be our outcome variable that we will analyze against the following predictors.
+* cyl: Number of cylinders
+* wt: Weight (lb/1000)
+* am: Transmission(0 = automatic, 1 = manual)
+
+After loading the data we prepare the data to have an additional column named _transmission_ that match the label _Automatic_ to the level 0 and _Manual_ to the level 1.
+```{r, echo=FALSE}
 mtcars <- transform(mtcars, transmission = factor(mtcars$am,
                                                      levels = c(0,1),
                                                      labels = c("Automatic", "Manual")))
@@ -31,44 +33,131 @@ mtcars <- transform(mtcars, transmission = factor(mtcars$am,
 
 ## Exploratory analysis
 
-We would like to determine if there is a relationship between transmission an mpg.
+We would like to determine if there is a relationship between transmission an mpg. So the first idea is to draw a boxplot for the two groups. It shows there is a relation between transmission and mpg: cars use more fuel when
+transmission is manual than automatic. See Appendix for the plot.
 
-```{r}
-boxplot(mpg~transmission,data=mtcars, main="Car Milage Data",
-   xlab="Transmission type", ylab="Miles Per Gallon") 
-```
-
-So it seems there is a relation between transmission and mpg: cars use more fuel when
-transmission is manual than automatic
-
-```{r}
-cor(mtcars$am, mtcars$mpg)
-
-```
+A means of group comparison using Student t-test has been performed and confirms the relation. See appendix for more detail.
 
 ## Regression model
 
+Now, we will try to quantify the difference between the two types of transmission on mpg:
+
 ```{r}
-model <- lm(mpg~am, data=mtcars)
-model.summary <- summary(model)
-model.summary
+model.1 <- lm(mpg~transmission, data=mtcars)
+```
+
+```{r, echo=FALSE}
+model.1.summary <- summary(model.1)
 ```
 
 This model shows that:
 
-* the coefficient is statistically significant (with a p-value of `r model.summary$coefficients[2,4]`)
-* transmission explains `r model.summary$r.squared * 100`% of the variance
+* the coefficient is statistically significant (with a p-value of `r model.1.summary$coefficients[2,4]`)
+* transmission explains `r model.1.summary$r.squared * 100`% of the variance
 * when the transmision change from automatic (0) to manual(1), there is an increase in mpg of
-`r model$coefficients['am']`
+`r model.1$coefficients['transmissionManual']`
+* the 95% confidence interval is `r confint(model.1)[2,]`
 
-Next the confidence interval:
+The residuals plot (see Appendix) shows that the points are randomly placed around the blue line, so there is no relation between the residual and the outcome.
+
+## Regression model improvement
+
+Next we will try to improve our model by adding other variables, first let's look at the correlation matrix in appendix, it shows that wt and cyl have impact on mpg. So, we first create a model with transmission and cylinder as predictor of mpg:
 
 ```{r}
-confint(model)
+model.2 <- lm(mpg ~ transmission + factor(cyl), mtcars)
+```
+```{r, echo=FALSE}
+model.2.summary <- summary(model.2)
 ```
 
-Let's plot the residuals:
+Summary of different models are in the appendix.
+Here we can see that transmission coefficient is no more significant (with a p-value of `r model.2.summary$coefficients[2,4]`). This model also shows that:
 
+* the coefficients for cylinder are statistically significant (with a p-value of `r model.2.summary$coefficients[3,4]` for 6-cyl and `r model.2.summary$coefficients[4,4]`)
+* transmission and cylinder explains `r model.2.summary$r.squared * 100`% of the variance
+* when the transmision change from automatic (0) to manual(1), the coefficient is now
+`r model.2$coefficients['transmissionManual']`
+
+```{r, echo=FALSE}
+model.3 <- lm(mpg ~ transmission + wt, mtcars)
+model.3.summary <- summary(model.3)
+```
+Another model with transmission and weight as predictor shows that transmission coefficient is no more significant (with a p-value of `r model.3.summary$coefficients[2,4]`):
 ```{r}
-plot(resid(model))
+model.3 <- lm(mpg ~ transmission + wt, mtcars)
 ```
+```{r, echo=FALSE}
+model.3.summary <- summary(model.3)
+```
+
+Let's compare those 2 new models with the first one with ANOVA test:
+```{r}
+pvalue.1vs2 <- anova(model.1, model.2)[[6]][2]
+pvalue.1vs3 <- anova(model.1, model.3)[[6]][2]
+```
+We see that the 2 new models significantly explain more variance than the transmission variable alone:
+
+* mpg ~ transmission vs mpg ~ transmission + cyl: `r pvalue.1vs2`
+* mpg ~ transmission vs mpg ~ transmission + wt: `r pvalue.1vs3`
+
+## Conclusion
+
+This study shows several points. First, there is a relationship between mpg and transmission: automatic transmission tends to have less mpg.
+
+But if we go further by adding other variables like cylinder or weight, we see that those parameters give more accurate information on mpg variance.
+
+So we can conclude that there is a difference between automatic and manual transmission but it is not the main variable that can explain the difference of consumption between the vehicles.
+
+# Appendix
+
+### Data excerpt
+
+```{r,echo=FALSE}
+head(mtcars)
+```
+
+### Boxplot of both transmission type
+```{r, fig.height=3, fig.width=3, echo=FALSE}
+boxplot(mpg~transmission,data=mtcars, main="Car Milage Data",
+   xlab="Transmission type", ylab="Miles Per Gallon") 
+```
+
+### Means of group comparison
+
+We will perform a Student's t-test to analyze the difference of mean mpg between automatic and manual transmissions. Let's suppose that:
+
+* H<sub>0</sub> (null hypothesis) is "there are no difference in means between the two groups"
+* H<sub>a</sub> (alternative hypothesis) is "the means are different between the two groups"
+
+```{r, echo=FALSE}
+grouptest <- t.test(mtcars$mpg[mtcars$am == 0], mtcars$mpg[mtcars$am == 1])
+```
+
+The test gives a p-value of `r round(grouptest$p.value, 4)` less than 0.05, so we reject the null hypothesis and assume there is a difference between the two groups.
+
+The confidence interval being negative (`r round(grouptest$conf.int[c(1,2)], 4)`), it tends to prove that manual transmission have greater mpg.
+
+### Residuals of model predicting mpg according to transmission
+
+```{r,echo=FALSE, fig.height=4, fig.width=4}
+plot(resid(model.1), col = 5+ mtcars$am, main="Redisual plots of first model")
+abline(0,0, col="blue", lw="3")
+legend("topright",legend=c("Automatic", "Manual"), col=5 + c(0,1), pch=1)
+```
+
+
+### Correlation matrix
+
+```{r, fig.height=3, fig.width=3, echo=FALSE}
+pairs(mtcars[,c("mpg", "am", "wt", "cyl")], panel = panel.smooth, col=3+mtcars$am)
+```
+
+### Model summaries
+
+```{r, echo=FALSE}
+model.1.summary
+model.2.summary
+model.3.summary
+```
+
