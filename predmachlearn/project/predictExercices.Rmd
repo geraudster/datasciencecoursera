@@ -1,0 +1,23 @@
+## Data loading
+
+```{r,cache=TRUE}
+source('loadData.R')
+trainingUrl <- 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv'
+testingUrl <- 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv'
+  
+loadDataFile(trainingUrl, "data/pml-training.csv", unzip=FALSE)
+loadDataFile(testingUrl, "data/pml-testing.csv", unzip=FALSE)
+
+training <- read.csv("data/pml-training.csv")
+testing <- read.csv("data/pml-testing.csv")
+```
+
+## First model
+
+```{r}
+library(caret)
+
+set.seed(32343)
+#modelFit <- train(classe ~ ., data=training, method="glm")
+#modelFit
+```
