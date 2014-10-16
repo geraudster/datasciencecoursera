@@ -1,6 +1,12 @@
+---
+output:
+  html_document:
+    keep_md: yes
+---
 ## Data loading
 
 ```{r,cache=TRUE}
+library(reshape)
 source('loadData.R')
 trainingUrl <- 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv'
 testingUrl <- 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv'
@@ -9,7 +15,17 @@ loadDataFile(trainingUrl, "data/pml-training.csv", unzip=FALSE)
 loadDataFile(testingUrl, "data/pml-testing.csv", unzip=FALSE)
 
 training <- read.csv("data/pml-training.csv")
+training$timestamp <- paste0(training$raw_timestamp_part_1, training$raw_timestamp_part_2)
 testing <- read.csv("data/pml-testing.csv")
+```
+
+## Some queries
+
+```{r}
+head(training[,seq(1,7)], 20)
+
+library(sqldf)
+sqldf("select X, user_name, timestamp from training where num_window = 12")
 ```
 
 ## First model
