@@ -29,8 +29,8 @@ testing = mixtures[-inTrain,]
 
 The feature plot:
 ```{r}
-featurePlot(x=training,
-            y=seq_along(training$CompressiveStrength),
+featurePlot(x=training[,c("FlyAsh", "Age")],
+            y=training$CompressiveStrength,
             plot="pairs")
 ```
 
@@ -48,7 +48,89 @@ qplot(y=training$CompressiveStrength, colour=cutFlyAsh)
 
 Plot after cutting Age:
 ```{r}
-cutAge <- cut2(training$Age, g=3)
+cutAge <- cut2(training$Age, g=4)
 qplot(y=training$CompressiveStrength, colour=cutAge)
+```
 
+Plot outcome vs FlyAsh:
+```{r}
+qplot(training$FlyAsh, training$CompressiveStrength)
+```
+
+Plot outcome vs Age:
+```{r}
+qplot(training$Age, training$CompressiveStrength)
+```
+
+## Q3
+
+```{r}
+set.seed(975)
+inTrain = createDataPartition(mixtures$CompressiveStrength, p = 3/4)[[1]]
+training = mixtures[ inTrain,]
+testing = mixtures[-inTrain,]
+```
+
+Plot histogram:
+```{r}
+hist(training$Superplasticizer)
+hist(log(training$Superplasticizer))
+```
+
+```{r}
+str(training$Superplasticizer)
+```
+
+## Q4
+
+```{r}
+set.seed(3433)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+head(training)
+```
+
+Preprocess with ACP (here we specify thresh parameter):
+```{r}
+# Filter columns
+ILcolnames <- grep("^IL", colnames(training))
+preProc <- preProcess(training[,ILcolnames], method="pca", thresh=0.80)
+preProc$numComp
+```
+
+## Q5
+
+```{r}
+set.seed(3433)
+data(AlzheimerDisease)
+adData = data.frame(diagnosis,predictors)
+inTrain = createDataPartition(adData$diagnosis, p = 3/4)[[1]]
+training = adData[ inTrain,]
+testing = adData[-inTrain,]
+# Filter columns
+ILcolnames <- grep("^IL", colnames(training))
+```
+
+First model without PCA:
+```{r}
+modelWithoutPCA <- train(diagnosis ~ ., data=training[,c(1,ILcolnames)], method="glm")
+summary(modelWithoutPCA)
+predictionWithoutPCA <- predict(modelWithoutPCA, testing[,c(1,ILcolnames)])
+predictionWithoutPCA
+confusionMatrix(testing$diagnosis, predictionWithoutPCA)
+```
+
+Second model with PCA:
+```{r}
+preProc <- preProcess(training[,ILcolnames], thresh=0.80, method="pca")
+trainingPC <- predict(preProc, training[,ILcolnames])
+modelWithPCA <- train(training$diagnosis ~ ., data=trainingPC, method="glm")
+summary(modelWithPCA)
+testingPC <- predict(preProc, testing[,ILcolnames])
+predictionWithPCA <- predict(modelWithPCA, testingPC)
+predictionWithPCA
+confusionMatrix(testing$diagnosis, predictionWithPCA)
 ```
