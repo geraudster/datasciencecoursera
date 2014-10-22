@@ -7,6 +7,8 @@ output:
 
 ```{r,cache=TRUE}
 library(reshape)
+library(caret)
+library(plyr)
 source('loadData.R')
 trainingUrl <- 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv'
 testingUrl <- 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv'
@@ -14,25 +16,49 @@ testingUrl <- 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.c
 loadDataFile(trainingUrl, "data/pml-training.csv", unzip=FALSE)
 loadDataFile(testingUrl, "data/pml-testing.csv", unzip=FALSE)
 
-training <- read.csv("data/pml-training.csv")
-training$timestamp <- paste0(training$raw_timestamp_part_1, training$raw_timestamp_part_2)
-testing <- read.csv("data/pml-testing.csv")
+data <- read.csv("data/pml-training.csv")
+data$timestamp <- paste0(data$raw_timestamp_part_1, data$raw_timestamp_part_2)
+inTrain <- createDataPartition(y=data$classe, p=0.75, list=FALSE)
+
+training <- data[inTrain,]
+testing <- data[-inTrain,]
+
+validation <- read.csv("data/pml-testing.csv")
 ```
 
 ## Some queries
 
 ```{r}
 head(training[,seq(1,7)], 20)
+```
 
+Several columns contain lots of NAs values:
+```{r}
+str(training)
+```
+So we filter the column with more than 95% of NAs:
+```{r}
+colnamesForFilter <- colnames(training)
+colsPercent <- sapply(colnamesForFilter, function(x) { na <- is.na(training[,x]); sum(na)/length(na) })
+
+trainingColnames <- names(which(colsPercent < 0.95))
+```
+
+```{r}
 library(sqldf)
 sqldf("select X, user_name, timestamp from training where num_window = 12")
+```
+
+ACP try:
+```{r}
+dat <- sapply(training[, trainingColnames[c(-1, -2, -93, -94)]], as.numeric)
+preProc <- preProcess(dat, method="pca", thresh = 0.80)
+preProc$rotation
 ```
 
 ## First model
 
 ```{r}
-library(caret)
-
 set.seed(32343)
 #modelFit <- train(classe ~ ., data=training, method="glm")
 #modelFit
