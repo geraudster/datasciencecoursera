@@ -18,7 +18,7 @@ loadDataFile(testingUrl, "data/pml-testing.csv", unzip=FALSE)
 
 data <- read.csv("data/pml-training.csv")
 data$timestamp <- paste0(data$raw_timestamp_part_1, data$raw_timestamp_part_2)
-inTrain <- createDataPartition(y=data$classe, p=0.75, list=FALSE)
+inTrain <- createDataPartition(y=data$classe, p=0.5, list=FALSE)
 
 training <- data[inTrain,]
 testing <- data[-inTrain,]
@@ -135,17 +135,19 @@ Validate model:
 ```{r}
 testingPC <- computeACP(testing, preProc = ACP$preProc)$data
 predictions <- predictExercise(testingPC)
+```
 
-install.packages('doMC')
-require('doMC')
-registerDoMC(cores = 2)
+```{r}
+#install.packages('doMC')
+#require('doMC')
+#registerDoMC(cores = 2)
 
-trainingData <- training[,trainingColnames[-c(1, 3:7, 61)]]
-testingData <- testing[,trainingColnames[-c(1, 3:7, 61)]]
+trainingData <- training[training$new_window == 'no',trainingColnames[-c(1, 3:7, 61)]]
+testingData <- testing[testing$new_window == 'no',trainingColnames[-c(1, 3:7, 61)]]
 
-fit <- train( classe ~ ., data=trainingData, method="rf")
+fit <- train( classe ~ ., data=trainingData, method="gbm")
 predictions <- predict(fit, newdata = testingData)
-confusionMatrix(predictions, testingPC$classe)
+confusionMatrix(predictions, testingData$classe)
 ```
 
 ## References
