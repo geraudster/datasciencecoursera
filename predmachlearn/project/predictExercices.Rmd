@@ -145,9 +145,17 @@ predictions <- predictExercise(testingPC)
 trainingData <- training[training$new_window == 'no',trainingColnames[-c(1, 3:7, 61)]]
 testingData <- testing[testing$new_window == 'no',trainingColnames[-c(1, 3:7, 61)]]
 
-fit <- train( classe ~ ., data=trainingData, method="gbm")
-predictions <- predict(fit, newdata = testingData)
-confusionMatrix(predictions, testingData$classe)
+gbmModel <- list()
+gbmModel$time <- system.time(gbmModel$fit <- train( classe ~ ., data=trainingData, method="gbm"))
+gbmModel$predictions <- predict(gbmModel$fit, newdata = testingData)
+gbmModel$confusionMatrix <- confusionMatrix(gbmModel$predictions, testingData$classe)
+```
+
+```{r}
+rfModel <- list()
+rfModel$time <- system.time(rfModel$fit <- train( classe ~ ., data=trainingData, method="rf"))
+rfModel$predictions <- predict(rfModel$fit, newdata = testingData)
+rfModel$confusionMatrix <- confusionMatrix(rfModel$predictions, testingData$classe)
 ```
 
 ## References
