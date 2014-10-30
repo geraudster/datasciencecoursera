@@ -135,7 +135,9 @@ Validate model:
 ```{r}
 testingPC <- computeACP(testing, preProc = ACP$preProc)$data
 predictions <- predictExercise(testingPC)
+```
 
+```{r}
 install.packages('doMC')
 require('doMC')
 registerDoMC(cores = 2)
