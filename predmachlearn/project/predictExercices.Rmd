@@ -3,6 +3,15 @@ output:
   html_document:
     keep_md: yes
 ---
+
+## Install libraries
+
+```{r}
+install.packages('reshape')
+install.packages('caret')
+install.packages('plyr')
+```
+
 ## Data loading
 
 ```{r,cache=TRUE}
