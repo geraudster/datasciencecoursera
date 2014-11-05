@@ -7,17 +7,16 @@ output:
 ## Install libraries
 
 ```{r}
-install.packages('reshape')
-install.packages('caret')
-install.packages('plyr')
+#install.packages('caret')
+#install.packages('e1071')
+#install.packages('gbm')
+#install.packages('randomForest')
 ```
 
 ## Data loading
 
 ```{r,cache=TRUE}
-library(reshape)
 library(caret)
-library(plyr)
 source('loadData.R')
 trainingUrl <- 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv'
 testingUrl <- 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv'
@@ -26,8 +25,7 @@ loadDataFile(trainingUrl, "data/pml-training.csv", unzip=FALSE)
 loadDataFile(testingUrl, "data/pml-testing.csv", unzip=FALSE)
 
 data <- read.csv("data/pml-training.csv")
-data$timestamp <- paste0(data$raw_timestamp_part_1, data$raw_timestamp_part_2)
-inTrain <- createDataPartition(y=data$classe, p=0.5, list=FALSE)
+inTrain <- createDataPartition(y=data$classe, p=0.75, list=FALSE)
 
 training <- data[inTrain,]
 testing <- data[-inTrain,]
@@ -35,26 +33,10 @@ testing <- data[-inTrain,]
 validation <- read.csv("data/pml-testing.csv")
 ```
 
-## Some queries
-
-```{r}
-head(training[,c(seq(1,8), 160,161)], 50)
-(1323084232120339 - 1323084232996313) / 1000
-(1323084231788290 - 1323084231808298) / 1000000
-(938010 - 972396) / 1000
-
-(1323084238972281 - 1323084326044298) / 1000000
-
-```
 
 Several columns contain lots of empty or NAs values:
 ```{r}
 str(training)
-```
-
-But we can use only new windows rows, that contain aggregation data from the 2.5s window:
-```{r}
-str(training[training$new_window == 'yes',])
 ```
 
 So we filter the column with more than 95% of NAs:
@@ -68,92 +50,15 @@ colsPercent <- sapply(colnamesForFilter, function(x) {
 trainingColnames <- names(which(colsPercent < 0.95))
 ```
 
+So below is our dataset:
 ```{r}
-library(sqldf)
-sqldf("select X, user_name, num_window, new_window, timestamp from training where num_window in (12, 13)")
-sqldf("select distinct user_name from validation")
-```
-
-ACP try:
-```{r}
-computeACP <- function (x, preProc = NULL) {
-    datatmp <- sapply(x[, trainingColnames[-c(seq(1,7), 60, 61)]], as.numeric)
-    if(is.null(preProc)){
-        print("Computing new PCA")
-        preProc <- preProcess(datatmp, method="pca", thresh = 0.90)
-    }
-    list(data = data.frame(user_name = x$user_name, predict(preProc, datatmp), classe = x$classe),
-         preProc = preProc)
-}
-
-trainingNo <- training[training$new_window == 'no',]
-ACP <- computeACP(trainingNo)
-trainingPC <- ACP$data
-#qplot(trainingPC$user_name, trainingPC$PC1, col=trainingNo$classe, geom="jitter")
-#qplot(trainingPC$PC1, trainingPC$PC2, col=trainingNo$user_name)
-qplot(PC1, PC2, col=classe, facets= . ~ user_name, data=trainingPC)
-```
-
-```{r}
-trainingYes <- training[training$new_window == 'yes',]
-trainingYesPC <- computeACP(trainingYes)
-#qplot(trainingYesPC[,1], trainingYesPC[,2], col=trainingYes$classe)
-#qplot(trainingYesPC$PC1, trainingYesPC$PC2, col=trainingYes$user_name)
-qplot(PC1, PC2, col=trainingYes$classe, facets= . ~ user_name, data=trainingYesPC)
-```
-
-Correlation:
-```{r}
-M <- abs(cor(training[,trainingColnames[-c(seq(1,7), 60, 61)]]))
-diag(M) <- 0
-Mcor <- which(M>0.9, arr.ind=T)
-Mcor <- Mcor[order(Mcor[,1]),]
-```
-
-## First model
-
-```{r}
-set.seed(32343)
-models <- sapply(levels(training$user_name), function (x) {
-    print(paste("Training model for" , x))
-    dataSubset <- trainingPC[trainingPC$user_name == x,]
-    train( classe ~ . - user_name, data=dataSubset, method="rpart")
-})
-
-models[,'pedro']$finalModel
-```
-
-Prediction function:
-```{r}
-predictExercise <- function (x) {
-    unlist(
-        by(x, x$user_name, function(row) {
-            user_name <- unique(row$user_name)
-            print(paste("For user ", user_name))
-            print(dim(row))
-            print(models[1, user_name])
-            predict(models[, user_name]$finalModel, newdata=row, type= 'class')
-            },
-            simplify = TRUE),
-        use.names = FALSE)
-}
-
-```
-
-Validate model:
-```{r}
-testingPC <- computeACP(testing, preProc = ACP$preProc)$data
-predictions <- predictExercise(testingPC)
-```
-
-```{r}
-#install.packages('doMC')
-#require('doMC')
-#registerDoMC(cores = 2)
-
 trainingData <- training[training$new_window == 'no',trainingColnames[-c(1, 3:7, 61)]]
 testingData <- testing[testing$new_window == 'no',trainingColnames[-c(1, 3:7, 61)]]
+```
 
+## Training model with GBM
+
+```{r, cache=TRUE}
 gbmModel <- list()
 gbmModel$time <- system.time(gbmModel$fit <- train( classe ~ ., data=trainingData, method="gbm"))
 gbmModel$predictions <- predict(gbmModel$fit, newdata = testingData)
@@ -161,10 +66,22 @@ gbmModel$confusionMatrix <- confusionMatrix(gbmModel$predictions, testingData$cl
 ```
 
 ```{r}
+gbmModel$confusionMatrix
+```
+
+## Training model with Random Forests
+
+```{r, cache=TRUE}
+require('doMC')
+registerDoMC(cores = 2)
 rfModel <- list()
 rfModel$time <- system.time(rfModel$fit <- train( classe ~ ., data=trainingData, method="rf"))
 rfModel$predictions <- predict(rfModel$fit, newdata = testingData)
 rfModel$confusionMatrix <- confusionMatrix(rfModel$predictions, testingData$classe)
+```
+
+```{r}
+rfModel$confusionMatrix
 ```
 
 ## References
