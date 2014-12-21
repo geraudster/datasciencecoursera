@@ -1,4 +1,6 @@
 
+# Prediction Assignment Writeup
+
 ## Project Objectives
 
 This project is related to Human Activity Recognition and the goal is 
@@ -10,8 +12,8 @@ of a movement : coordinates in space, pitch, roll...
 The objectives are:
 
 * train a model on this dataset (in fact we will try 2 models Decision Tree and Random Forest, then choose the best model)
-* validate the model against out of sample data
-* submit the model to 20 test cases provided in th assignement
+* for each model: validate the model against out of sample data
+* submit the best model to 20 test cases provided in the assignement
 
 
 ## Install libraries
