@@ -109,7 +109,7 @@ qplot(data = rpartModel$df, x = Reference, y = Prediction,
       geom = 'tile',
       main = "Confusion matrix for Decision Tree model") +
   geom_text(aes(label = Freq)) +
-  scale_fill_gradient(low = "red", high = "blue")
+  scale_fill_gradient(low = "white", high = "blue")
 ```
 
 We can see that the model fails to predict 'D' classe, we'll need to investigate this problem.
@@ -138,7 +138,7 @@ qplot(data = rfModel$df, x = Reference, y = Prediction,
       geom = 'tile',
       main = "Confusion matrix for Random Forest model") +
   geom_text(aes(label = Freq)) +
-  scale_fill_gradient(low = "red", high = "blue")
+  scale_fill_gradient(low = "white", high = "blue")
 ```
 
 Result is excellent with an accuracy of **`r rfModel$confusionMatrix$overall[1]`**, so we will 

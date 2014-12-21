@@ -256,7 +256,7 @@ qplot(data = rpartModel$df, x = Reference, y = Prediction,
       geom = 'tile',
       main = "Confusion matrix for Decision Tree model") +
   geom_text(aes(label = Freq)) +
-  scale_fill_gradient(low = "red", high = "blue")
+  scale_fill_gradient(low = "white", high = "blue")
 ```
 
 ![](predictExercices_files/figure-html/unnamed-chunk-7-1.png) 
@@ -289,7 +289,7 @@ qplot(data = rfModel$df, x = Reference, y = Prediction,
       geom = 'tile',
       main = "Confusion matrix for Random Forest model") +
   geom_text(aes(label = Freq)) +
-  scale_fill_gradient(low = "red", high = "blue")
+  scale_fill_gradient(low = "white", high = "blue")
 ```
 
 ![](predictExercices_files/figure-html/unnamed-chunk-9-1.png) 
