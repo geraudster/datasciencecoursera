@@ -2,21 +2,40 @@
 output:
   html_document:
     keep_md: yes
+bibliography: wle.bib
 ---
+
+## Project Objectives
+
+This project is related to Human Activity Recognition and the goal is 
+to analyze data from Weight Lifting Exercises [@velloso2013qualitative].
+
+This data set contains several variables used to measure different characteristics
+of a movement : coordinates in space, pitch, roll...
+
+The objectives are:
+
+* train a model on this dataset (in fact we will try 2 models GBM and Random Forest, then choose the best model)
+* validate the model against out of sample data
+* submit the model to 20 test cases provided in th assignement
+
 
 ## Install libraries
 
-```{r}
-#install.packages('caret')
-#install.packages('e1071')
-#install.packages('gbm')
-#install.packages('randomForest')
+First we will need some libraries:
+```{r, cache=TRUE, message=FALSE, warning=FALSE}
+options(repos = c('http://cran.rstudio.com'))
+install.packages('caret')
+install.packages('e1071')
+install.packages('gbm')
+install.packages('randomForest')
+install.packages('doMC', dependencies = TRUE)
 ```
 
 ## Data loading
 
+Then we load the data, and create the train set and test set (75% vs. 25%):
 ```{r,cache=TRUE}
-library(caret)
 source('loadData.R')
 trainingUrl <- 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv'
 testingUrl <- 'https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv'
@@ -33,6 +52,7 @@ testing <- data[-inTrain,]
 validation <- read.csv("data/pml-testing.csv")
 ```
 
+The `validation` set will be used to submit test cases to the model.
 
 Several columns contain lots of empty or NAs values:
 ```{r}
@@ -50,7 +70,14 @@ colsPercent <- sapply(colnamesForFilter, function(x) {
 trainingColnames <- names(which(colsPercent < 0.95))
 ```
 
-So below is our dataset:
+The data is split on the `new_window` column between 2 sort of data:
+
+* if `new_window` is true then the row contains aggregated data of the last frame
+* if `new_window` is false, then the row contains instant measure
+
+As the `validation` set contains only false `new_window`, we will filter our train set on this
+value:
+
 ```{r}
 trainingData <- training[training$new_window == 'no',trainingColnames[-c(1, 3:7, 61)]]
 testingData <- testing[testing$new_window == 'no',trainingColnames[-c(1, 3:7, 61)]]
@@ -58,20 +85,28 @@ testingData <- testing[testing$new_window == 'no',trainingColnames[-c(1, 3:7, 61
 
 ## Training model with GBM
 
-```{r, cache=TRUE}
+The first attempt is to train a model on Generalized Boosted Regression Models. We fit a model
+to predict `classe` against all remaining variables:
+
+```{r, cache=TRUE, message=FALSE, warning=FALSE}
+library(caret)
 gbmModel <- list()
 gbmModel$time <- system.time(gbmModel$fit <- train( classe ~ ., data=trainingData, method="gbm"))
 gbmModel$predictions <- predict(gbmModel$fit, newdata = testingData)
 gbmModel$confusionMatrix <- confusionMatrix(gbmModel$predictions, testingData$classe)
 ```
 
+The model is trained in `r gbmModel$predictions[3]` seconds.
+Below is the confusion matrix:
 ```{r}
 gbmModel$confusionMatrix
 ```
 
+Result is quite good with `r gbmModel$confusionMatrix[['accuracy]]`
+
 ## Training model with Random Forests
 
-```{r, cache=TRUE}
+```{r, cache=TRUE, message=FALSE, warning=FALSE}
 require('doMC')
 registerDoMC(cores = 2)
 rfModel <- list()
@@ -83,6 +118,8 @@ rfModel$confusionMatrix <- confusionMatrix(rfModel$predictions, testingData$clas
 ```{r}
 rfModel$confusionMatrix
 ```
+
+Response in `r rfModel$time`.
 
 ## References
 
