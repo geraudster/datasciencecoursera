@@ -3,9 +3,10 @@ output:
   html_document:
     keep_md: yes
 bibliography: wle.bib
+title: Prediction Assignment Writeup
+author: Géraud Dugé de Bernonville
+date: Dec 21, 2014
 ---
-
-# Prediction Assignment Writeup
 
 ## Project Objectives
 

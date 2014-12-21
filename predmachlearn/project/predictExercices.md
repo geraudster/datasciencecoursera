@@ -1,5 +1,6 @@
-
 # Prediction Assignment Writeup
+Géraud Dugé de Bernonville  
+Dec 21, 2014  
 
 ## Project Objectives
 
