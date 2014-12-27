@@ -358,12 +358,12 @@ Preprocess with ACP (here we specify thresh parameter):
 ```r
 # Filter columns
 ILcolnames <- grep("^IL", colnames(training))
-preProc <- preProcess(training[,ILcolnames], method="pca", thresh=0.90)
+preProc <- preProcess(training[,ILcolnames], method="pca", thresh=0.80)
 preProc$numComp
 ```
 
 ```
-## [1] 9
+## [1] 7
 ```
 
 ## Q5

@@ -1,3 +1,8 @@
+---
+output:
+  html_document:
+    keep_md: yes
+---
 ```{r}
 library(caret)
 ```
@@ -13,13 +18,13 @@ vowel.train$y <- as.factor(vowel.train$y)
 vowel.test$y <- as.factor(vowel.test$y)
 ```
 
-```{r}
+```{r, cache=TRUE}
 set.seed(33833)
 rf.fit <- train(y ~ ., data = vowel.train, method = 'rf')
 ```
 
-```{r}
-gbm.fit <- train(y ~ ., data = vowel.train, method = 'gbm')
+```{r, cache=TRUE}
+gbm.fit <- train(y ~ ., data = vowel.train, method = 'gbm', verbose = FALSE)
 ```
 
 ```{r}
@@ -37,9 +42,8 @@ Accuracy for GBM is `r gbm.confusion$overall[1]`.
 
 Agreed accuracy is:
 ```{r}
-mean(rf.predict == gbm.predict & gbm.predict == vowel.test$y))
+mean(rf.predict == gbm.predict)
 ```
-
 
 ## Q2
 
@@ -55,11 +59,11 @@ training = adData[ inTrain,]
 testing = adData[-inTrain,]
 ```
 
-```{r}
+```{r, cache=TRUE}
 model <- list()
 set.seed(62433)
 model$rf <- train(diagnosis ~ ., data = training, method = 'rf')
-model$gbm <- train(diagnosis ~ ., data = training, method = 'gbm')
+model$gbm <- train(diagnosis ~ ., data = training, method = 'gbm', verbose = FALSE)
 model$lda <- train(diagnosis ~ ., data = training, method = 'lda')
 ```
 
@@ -89,3 +93,67 @@ confusionMatrix(predictions$lda, testing$diagnosis)$overall[1]
 predictions$combo <- predict(model$combo, modelsDf)
 confusionMatrix(predictions$combo, testing$diagnosis)$overall[1]
 ```
+
+## Q3
+
+```{r}
+set.seed(3523)
+library(AppliedPredictiveModeling)
+data(concrete)
+inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
+training = concrete[ inTrain,]
+testing = concrete[-inTrain,]
+```
+
+```{r}
+lasso.fit <- train(CompressiveStrength ~ ., data = training, method = 'lasso')
+plot(lasso.fit$finalModel, xvar= 'penalty', use.color = TRUE)
+```
+
+## Q4
+
+```{r}
+#install.packages('lubridate')
+library(lubridate)  # For year() function below
+file = url("http://d396qusza40orc.cloudfront.net/predmachlearn/gaData.csv")
+dat = read.csv(file)
+training = dat[year(dat$date) < 2012,]
+testing = dat[(year(dat$date)) > 2011,]
+tstrain = ts(training$visitsTumblr)
+tstesting = ts(testing$visitsTumblr, start = end(tstrain))
+```
+
+```{r}
+#install.packages('forecast')
+library(forecast)
+plot(tstrain)
+```
+
+```{r}
+bats.fit <- bats(tstrain)
+bats.fcast <- forecast(bats.fit, h = length(tstesting))
+plot(bats.fcast); lines(tstesting, col='red')
+accuracy(bats.fcast, tstesting)
+mean(tstesting < bats.fcast$upper[,2] & tstesting > bats.fcast$lower[,1])
+```
+
+## Q5
+
+```{r}
+set.seed(3523)
+library(AppliedPredictiveModeling)
+data(concrete)
+inTrain = createDataPartition(concrete$CompressiveStrength, p = 3/4)[[1]]
+training = concrete[ inTrain,]
+testing = concrete[-inTrain,]
+```
+
+```{r}
+library(e1071)
+svm.fit <- svm(CompressiveStrength ~ ., data = training)
+summary(svm.fit)
+svm.pred <- predict(svm.fit, testing)
+```
+
+RMSE is `r sqrt(sum((svm.pred - testing$CompressiveStrength) ^ 2) / length(svm.pred))`
+
