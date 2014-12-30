@@ -14,8 +14,8 @@ ENV LC_ALL en_US.UTF-8
 RUN apt-get -y install \
     curl \
 	gdebi-core \
-	libapparmor1 \
     git \
+	libapparmor1 \
     nginx-extras \
     r-base \
     r-base-dev \
