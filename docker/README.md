@@ -14,7 +14,7 @@ Using it:
 
     sudo docker run -t geraudster/rstudio-server
 
-Then open http://localhost:8787
+Then open https://localhost, (login with rstudio/rstudio).
 
 Change password via RStudio shell window.
 
