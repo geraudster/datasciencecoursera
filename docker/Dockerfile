@@ -2,7 +2,7 @@ FROM ubuntu:trusty
 MAINTAINER geraudster
 
 RUN echo 'deb http://ftp.igh.cnrs.fr/pub/CRAN/bin/linux/ubuntu trusty/' >> /etc/apt/sources.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E084DAB9
 RUN apt-get update && apt-get -y upgrade
 
 # Set the locale

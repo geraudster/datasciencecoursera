@@ -12,7 +12,7 @@ Creating image:
 
 Using it:
 
-    sudo docker run -t geraudster/rstudio-server
+    sudo docker run -p 443:443 -d -t geraudster/rstudio-server
 
 Then open https://localhost, (login with rstudio/rstudio).
 
