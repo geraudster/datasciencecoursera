@@ -1,19 +1,20 @@
 library(ggplot2)
+library(RColorBrewer)
 data(airquality)
 
 shinyServer(
     function(input, output) {
         output$correl <- renderPlot({
-            var1 <- input$var1
-            var2 <- input$var2
+            variable <- input$variable
+            outcome <- input$outcome
             color <- input$color
-            qplot(get(var1), get(var2),
+            qplot(get(variable), get(outcome),
                   data = airquality,
-                  xlab = var1,
-                  ylab = var2,
+                  xlab = variable,
+                  ylab = outcome,
                   col = get(color)) +
-                geom_abline() +
-                scale_colour_gradientn(colours=rainbow(4))
+                stat_smooth(method="lm", formula = y ~ poly(x, 2)) +
+                scale_colour_gradientn(name = color, colours=rev(brewer.pal(4, 'RdYlGn')))
         })
         
     }
