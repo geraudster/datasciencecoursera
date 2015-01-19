@@ -26,7 +26,7 @@ Start the data container:
 
 Start RStudio container:
 
-    sudo docker run --rm --volumes-from=rstudio-data -p 443:443 -d -t geraudster/rstudio-server
+    sudo docker run --volumes-from=rstudio-data -p 443:443 -d -t geraudster/rstudio-server
 
 Access data volume:
 
