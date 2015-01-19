@@ -31,6 +31,7 @@ RUN mkdir -p /etc/nginx/ssl
 RUN openssl req -batch -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt
 ADD rstudio-nginx.conf /etc/nginx/sites-enabled/
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+VOLUME /home/rstudio
 EXPOSE 443
 CMD ["/usr/bin/supervisord"]
 

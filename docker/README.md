@@ -18,6 +18,20 @@ Then open https://localhost, (login with rstudio/rstudio).
 
 Change password via RStudio shell window.
 
+## Use with data container
+
+Start the data container:
+
+    sudo docker run --name rstudio-data geraudster/rstudio-server echo "Starting data container..."
+
+Start RStudio container:
+
+    sudo docker run --rm --volumes-from=rstudio-data -p 443:443 -d -t geraudster/rstudio-server
+
+Access data volume:
+
+    sudo docker run --rm -it -u rstudio --volumes-from=rstudio-data geraudster/rstudio-server bash
+
 ## Explanation
 
 First we build the image from an Ubuntu/Trusty:
