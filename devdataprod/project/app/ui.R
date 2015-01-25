@@ -15,15 +15,20 @@ shinyUI(
                           helpText('Selecting a variable will draw the scatter plot against Ozone measurement and show the regression line that fits the data')
                         ),
                         mainPanel(
+                          h3('Basic Linear regression'),
                           plotOutput('correl'),
+                          h3('Coefficients'),
                           tableOutput('intercept')
                         )
                       )),
              tabPanel('Predict',
                       sidebarLayout(
                         sidebarPanel(
-                          sliderInput('temp.diff', 'Temperature raise', 0, 10, 0, step = 0.5)
+                          sliderInput('temp.diff', 'Temperature raise', 0, 10, 0, step = 0.5),
+                          helpText('Choose the temperature raise in degree Fahrenheit, and see the distribution of Ozone pollution.'),
+                          helpText('Ozone values are represented by their log(Ozone) function.')
                         ),
                         mainPanel(
-                          plotOutput('ts')))),
+                          plotOutput('ts'),
+                          textOutput('means')))),
              header = wellPanel(includeMarkdown('intro.md'))))

@@ -9,3 +9,5 @@ A data frame with 154 observations on 6 variables.
 * `Solar.R`: Solar radiation in Langleys in the frequency band 4000–7700 Angstroms from 0800 to 1200 hours at Central Park
 * `Wind`: Average wind speed in miles per hour at 0700 and 1000 hours at LaGuardia Airport
 * `Temp`: Maximum daily temperature in degrees Fahrenheit at La Guardia Airport.
+
+For the purpose of this application, we use log(Ozone) instead of Ozone, to ensure the values are normally distributed.
