@@ -32,4 +32,5 @@ shinyUI(
                         mainPanel(
                           plotOutput('ts'),
                           textOutput('means')))),
-             header = wellPanel(includeMarkdown('intro.md'))))
+             header = wellPanel(includeMarkdown('intro.md')),
+             footer = p(br(), wellPanel(includeHTML('license.html')))))

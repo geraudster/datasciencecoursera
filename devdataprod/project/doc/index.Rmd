@@ -9,6 +9,7 @@ hitheme     : tomorrow      #
 widgets     : []            # {mathjax, quiz, bootstrap}
 mode        : selfcontained # {standalone, draft}
 knit        : slidify::knit2slides
+license     : by-sa
 ---
 
 ```{r, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
@@ -36,37 +37,20 @@ The dataset consists of 154 observations on 6 variables:
 * `Wind`: Average wind speed in miles per hour at 0700 and 1000 hours at LaGuardia Airport
 * `Temp`: Maximum daily temperature in degrees Fahrenheit at La Guardia Airport.
 
-Below is a sample code after imputing missing values:
-```{r, echo=FALSE}
+* The following correlation matrix shows that Wind and Temperature have strong correlation with Ozone:
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.height=3}
 data(airquality)
 
 library(mice)
+set.seed(1111)
 # Impute missing values
 imputed <- mice(airquality, m = 1, print = FALSE)
 airquality$Solar.R[is.na(airquality$Solar.R)] <- imputed$imp$Solar.R[[1]]
 airquality$Ozone[is.na(airquality$Ozone)] <- imputed$imp$Ozone[[1]]
-head(airquality)
+airquality$LogOzone <- log(airquality$Ozone)
 airquality2 <- airquality
-```
 
---- .class #id 
-
-## Data exploration
-
-* Ozone distribution is left skewed so we will use the log of Ozone to have a normal distribution.
-
-<!--
-```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.height = 3}
-library(reshape2)
-airquality2$LogOzone <- log(airquality2$Ozone)
-ozonemelt <- melt(airquality2[,c('Ozone', 'LogOzone')])
-qplot(value, data = ozonemelt, geom = 'histogram') + facet_grid(facets = . ~ variable,  scales = 'free_x')
-```
--->
-
-* The following correlation matrix shows that Wind and Temperature have strong correlation with Ozone:
-
-```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.height=4}
 library(reshape2)
 airquality.cor <- cor(airquality2[, c('LogOzone', 'Solar.R', 'Temp', 'Wind')])
 airquality.cor[lower.tri(airquality.cor)] <- NA
@@ -93,11 +77,12 @@ qplot(x=Var2, y=Var1, data=airquality.cor.melt, fill=value, geom="tile") +
 
 --- .class #id 
 
-## The model for prediction
+## Building the prediction model
 
 Below we compare different linear regression models:
 ```{r, fig.height=3}
 library(caret)
+set.seed(123)
 models <- list(Temp = train(LogOzone ~ Temp, airquality2, method = 'lm'),
                'Temp + Wind' = train(LogOzone ~ Temp + Wind, airquality2, method = 'lm'),
                'Temp + Wind + Solar.R' = train(LogOzone ~ Temp + Wind + Solar.R, airquality2, method = 'lm'))
@@ -109,8 +94,13 @@ We chose the third (`Temp + Wind + Solar.R`), which has lower RMSE and greater R
 
 --- .class #id 
 
-## How to use
+## How to use / limitations
 
-Bla bla 
+* Just go to [__OzoneApp__](http://geraudster.shinyapps.io/ozoneApp) and follow the instructions
+* Some limitations:
+  + __OzoneApp__ uses a small dataset containing only 6 month of data collected in 1973
+  + So the next steps will be to use more recent data to have more precise model
+  + Also, another step would be to mix Air Quality data with other kind of data like weather, traffic ,..
 
+* Credits for logo : 
 "Ozongassmolekyl" by Ingvald Straume - Own work. Licensed under CC BY-SA 3.0 via Wikimedia Commons - http://commons.wikimedia.org/wiki/File:Ozongassmolekyl.png#mediaviewer/File:Ozongassmolekyl.png

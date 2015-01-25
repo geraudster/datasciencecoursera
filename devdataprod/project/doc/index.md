@@ -9,6 +9,8 @@ hitheme     : tomorrow      #
 widgets     : []            # {mathjax, quiz, bootstrap}
 mode        : selfcontained # {standalone, draft}
 knit        : slidify::knit2slides
+license     : by-sa
+theme       : solarized-light
 ---
 
 
@@ -34,55 +36,39 @@ The dataset consists of 154 observations on 6 variables:
 * `Wind`: Average wind speed in miles per hour at 0700 and 1000 hours at LaGuardia Airport
 * `Temp`: Maximum daily temperature in degrees Fahrenheit at La Guardia Airport.
 
-Below is a sample code after imputing missing values:
-
-```
-##   Ozone Solar.R Wind Temp Month Day
-## 1    41     190  7.4   67     5   1
-## 2    36     118  8.0   72     5   2
-## 3    12     149 12.6   74     5   3
-## 4    18     313 11.5   62     5   4
-## 5     6     253 14.3   56     5   5
-## 6    28     188 14.9   66     5   6
-```
-
---- .class #id 
-
-## Data exploration
-
-* Ozone distribution is left skewed so we will use the log of Ozone to have a normal distribution.
-
-<!--
-![plot of chunk unnamed-chunk-3](assets/fig/unnamed-chunk-3.png) 
--->
-
 * The following correlation matrix shows that Wind and Temperature have strong correlation with Ozone:
 
-![plot of chunk unnamed-chunk-4](assets/fig/unnamed-chunk-4.png) 
+![plot of chunk unnamed-chunk-2](assets/fig/unnamed-chunk-2.png) 
 
 
 --- .class #id 
 
-## The model for prediction
+## Building the prediction model
 
 Below we compare different linear regression models:
 
 ```r
 library(caret)
+set.seed(123)
 models <- list(Temp = train(LogOzone ~ Temp, airquality2, method = 'lm'),
                'Temp + Wind' = train(LogOzone ~ Temp + Wind, airquality2, method = 'lm'),
                'Temp + Wind + Solar.R' = train(LogOzone ~ Temp + Wind + Solar.R, airquality2, method = 'lm'))
 bwplot(resamples(models))
 ```
 
-![plot of chunk unnamed-chunk-5](assets/fig/unnamed-chunk-5.png) 
+![plot of chunk unnamed-chunk-3](assets/fig/unnamed-chunk-3.png) 
 
 We chose the third (`Temp + Wind + Solar.R`), which has lower RMSE and greater R^2.
 
 --- .class #id 
 
-## How to use
+## How to use / limitations
 
-Bla bla 
+* Just go to [__OzoneApp__](http://geraudster.shinyapps.io/ozoneApp) and follow the instructions
+* Some limitations:
+  + __OzoneApp__ uses a small dataset containing only 6 month of data collected in 1973
+  + So the next steps will be to use more recent data to have more precise model
+  + Also, another step would be to mix Air Quality data with other kind of data like weather, traffic ,..
 
+* Credits for logo : 
 "Ozongassmolekyl" by Ingvald Straume - Own work. Licensed under CC BY-SA 3.0 via Wikimedia Commons - http://commons.wikimedia.org/wiki/File:Ozongassmolekyl.png#mediaviewer/File:Ozongassmolekyl.png
