@@ -1,6 +1,6 @@
 ---
-title : Ozone pollution prediction and global warming
-subtitle    : 
+title : OzoneApp
+subtitle    : Ozone pollution prediction and global warming
 author : Géraud Dugé de Bernonville
 job         : 
 framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
@@ -11,16 +11,106 @@ mode        : selfcontained # {standalone, draft}
 knit        : slidify::knit2slides
 ---
 
-## Read-And-Delete
+```{r, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
+library(ggplot2)
+```
 
-1. Edit YAML front matter
-2. Write using R Markdown
-3. Use an empty line followed by three dashes to separate slides!
+
+## Intro
+
+* Global warming is a major preoccupation, and recent studies show that temperature raising is
+a real concern.
+* Ozone pollution is another major concern as our populations became more and more urban, and we can see that Ozone pollution alert are more and more frequent.
+* [__OzoneApp__](http://geraudster.shinyapps.io/ozoneApp) aims to analyze the impact of global warming on Ozone pollution and will help predicting Ozone pollution depending on temperature raise.
+
+We use the _airquality_ dataset provided by R, this dataset contains Daily air quality measurements in New York, May to September 1973.
 
 --- .class #id 
 
-## Slide 2
+## Dataset
+
+The dataset consists of 154 observations on 6 variables:
+
+* `Ozone`: Mean ozone in parts per billion from 1300 to 1500 hours at Roosevelt Island
+* `Solar.R`: Solar radiation in Langleys in the frequency band 4000–7700 Angstroms from 0800 to 1200 hours at Central Park
+* `Wind`: Average wind speed in miles per hour at 0700 and 1000 hours at LaGuardia Airport
+* `Temp`: Maximum daily temperature in degrees Fahrenheit at La Guardia Airport.
+
+Below is a sample code after imputing missing values:
+```{r, echo=FALSE}
+data(airquality)
+
+library(mice)
+# Impute missing values
+imputed <- mice(airquality, m = 1, print = FALSE)
+airquality$Solar.R[is.na(airquality$Solar.R)] <- imputed$imp$Solar.R[[1]]
+airquality$Ozone[is.na(airquality$Ozone)] <- imputed$imp$Ozone[[1]]
+head(airquality)
+airquality2 <- airquality
+```
+
+--- .class #id 
+
+## Data exploration
+
+* Ozone distribution is left skewed so we will use the log of Ozone to have a normal distribution.
+
+<!--
+```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.height = 3}
+library(reshape2)
+airquality2$LogOzone <- log(airquality2$Ozone)
+ozonemelt <- melt(airquality2[,c('Ozone', 'LogOzone')])
+qplot(value, data = ozonemelt, geom = 'histogram') + facet_grid(facets = . ~ variable,  scales = 'free_x')
+```
+-->
+
+* The following correlation matrix shows that Wind and Temperature have strong correlation with Ozone:
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE, fig.height=4}
+library(reshape2)
+airquality.cor <- cor(airquality2[, c('LogOzone', 'Solar.R', 'Temp', 'Wind')])
+airquality.cor[lower.tri(airquality.cor)] <- NA
+airquality.cor.melt <- melt(airquality.cor)
+levels(airquality.cor.melt$Var1) <- list(LogOzone = 'LogOzone', Solar.R = 'Solar.R', Temp = 'Temp', Wind = 'Wind')
+levels(airquality.cor.melt$Var2) <- rev(list(LogOzone = 'LogOzone', Solar.R = 'Solar.R', Temp = 'Temp', Wind = 'Wind'))
+
+qplot(x=Var2, y=Var1, data=airquality.cor.melt, fill=value, geom="tile") +
+  geom_text(aes(Var2, Var1, label = round(value,2))) +
+  scale_fill_gradient(name=expression('Correlation'),
+                      limits = c(-1, 1),
+                      low = "steelblue", high = "orange", na.value = 'white') +
+   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1), 
+        panel.grid.major = element_blank(),
+      panel.border = element_blank(),
+      panel.background = element_blank(),
+      axis.ticks = element_blank(),
+      legend.justification = c(1, 0),
+      legend.position = c(0.9, 0.7),
+      legend.direction = "horizontal")
+
+```
 
 
+--- .class #id 
 
+## The model for prediction
 
+Below we compare different linear regression models:
+```{r, fig.height=3}
+library(caret)
+models <- list(Temp = train(LogOzone ~ Temp, airquality2, method = 'lm'),
+               'Temp + Wind' = train(LogOzone ~ Temp + Wind, airquality2, method = 'lm'),
+               'Temp + Wind + Solar.R' = train(LogOzone ~ Temp + Wind + Solar.R, airquality2, method = 'lm'))
+bwplot(resamples(models))
+
+```
+
+We chose the third (`Temp + Wind + Solar.R`), which has lower RMSE and greater R^2.
+
+--- .class #id 
+
+## How to use
+
+Bla bla 
+
+"Ozongassmolekyl" by Ingvald Straume - Own work. Licensed under CC BY-SA 3.0 via Wikimedia Commons - http://commons.wikimedia.org/wiki/File:Ozongassmolekyl.png#mediaviewer/File:Ozongassmolekyl.png

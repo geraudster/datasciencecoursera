@@ -1,4 +1,4 @@
-Global warming is a major preoccupation, and recent studies shows that temperature raising is
+Global warming is a major preoccupation, and recent studies show that temperature raising is
 a real concern.
 This application aims to analyze the impact of global warming on Ozone pollution which is also a major
 concern as our populations became more and more urban.

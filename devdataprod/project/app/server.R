@@ -9,13 +9,16 @@ imputed <- mice(airquality, m = 1)
 airquality$Solar.R[is.na(airquality$Solar.R)] <- imputed$imp$Solar.R[[1]]
 airquality$Ozone[is.na(airquality$Ozone)] <- imputed$imp$Ozone[[1]]
 
+# Here we use log(Ozone)
+airquality$LogOzone <- log(airquality$Ozone)
+
 shinyServer(
   function(input, output) {
     output$correl <- renderPlot({
       variable <- input$variable
-      outcome <- 'Ozone'
+      outcome <- 'LogOzone'
       color <- input$color
-      qplot(get(variable), log(get(outcome)),
+      qplot(get(variable), get(outcome),
             data = airquality,
             xlab = variable,
             ylab = outcome,
@@ -25,9 +28,9 @@ shinyServer(
     })
     output$intercept <- renderTable({
       variable <- input$variable
-      outcome <- 'Ozone'
+      outcome <- 'LogOzone'
       color <- input$color
-      model <- lm(log(get(outcome)) ~ get(variable), airquality)
+      model <- lm(get(outcome) ~ get(variable), airquality)
       model.summary <- summary(model)
       data.frame(Intercept = coef(model.summary)[1],
                  Slope = coef(model.summary)[2],
@@ -38,12 +41,11 @@ shinyServer(
     model.reactive <- reactive({
       temp.diff <- input$temp.diff
       result <- list()
-      result$model <- lm(log(Ozone) ~ Temp + Temp * Wind + Solar.R, airquality)
+      result$model <- lm(LogOzone ~ Temp + Wind + Solar.R, airquality)
       result$predictions <- predict(result$model, data.frame( Temp = airquality$Temp + temp.diff,
                                                               Wind = airquality$Wind,
                                                               Solar.R = airquality$Solar.R))
       airquality$Predictions <- result$predictions
-      airquality$LogOzone <- log(airquality$Ozone)
       
       result$melt <- melt(airquality[, c('Month', 'Day',
                                          'LogOzone', 'Predictions')],

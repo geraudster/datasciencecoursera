@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Ozone pollution prediction and global warming</title>
+  <title>OzoneApp</title>
   <meta charset="utf-8">
-  <meta name="description" content="Ozone pollution prediction and global warming">
+  <meta name="description" content="OzoneApp">
   <meta name="author" content="Géraud Dugé de Bernonville">
   <meta name="generator" content="slidify" />
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -32,8 +32,8 @@
     <!-- LOGO SLIDE -->
         <slide class="title-slide segue nobackground">
   <hgroup class="auto-fadein">
-    <h1>Ozone pollution prediction and global warming</h1>
-    <h2></h2>
+    <h1>OzoneApp</h1>
+    <h2>Ozone pollution prediction and global warming</h2>
     <p>Géraud Dugé de Bernonville<br/></p>
   </hgroup>
   <article></article>  
@@ -43,14 +43,17 @@
     <!-- SLIDES -->
     <slide class="" id="slide-1" style="background:;">
   <hgroup>
-    <h2>Read-And-Delete</h2>
+    <h2>Intro</h2>
   </hgroup>
   <article data-timings="">
-    <ol>
-<li>Edit YAML front matter</li>
-<li>Write using R Markdown</li>
-<li>Use an empty line followed by three dashes to separate slides!</li>
-</ol>
+    <ul>
+<li>Global warming is a major preoccupation, and recent studies show that temperature raising is
+a real concern.</li>
+<li>Ozone pollution is another major concern as our populations became more and more urban, and we can see that Ozone pollution alert are more and more frequent.</li>
+<li><a href="http://geraudster.shinyapps.io/ozoneApp"><strong>OzoneApp</strong></a> aims to analyze the impact of global warming on Ozone pollution and will help predicting Ozone pollution depending on temperature raise.</li>
+</ul>
+
+<p>We use the <em>airquality</em> dataset provided by R, this dataset contains Daily air quality measurements in New York, May to September 1973.</p>
 
   </article>
   <!-- Presenter Notes -->
@@ -58,10 +61,87 @@
 
 <slide class="class" id="id" style="background:;">
   <hgroup>
-    <h2>Slide 2</h2>
+    <h2>Dataset</h2>
   </hgroup>
   <article data-timings="">
-    
+    <p>The dataset consists of 154 observations on 6 variables:</p>
+
+<ul>
+<li><code>Ozone</code>: Mean ozone in parts per billion from 1300 to 1500 hours at Roosevelt Island</li>
+<li><code>Solar.R</code>: Solar radiation in Langleys in the frequency band 4000–7700 Angstroms from 0800 to 1200 hours at Central Park</li>
+<li><code>Wind</code>: Average wind speed in miles per hour at 0700 and 1000 hours at LaGuardia Airport</li>
+<li><code>Temp</code>: Maximum daily temperature in degrees Fahrenheit at La Guardia Airport.</li>
+</ul>
+
+<p>Below is a sample code after imputing missing values:</p>
+
+<pre><code>##   Ozone Solar.R Wind Temp Month Day
+## 1    41     190  7.4   67     5   1
+## 2    36     118  8.0   72     5   2
+## 3    12     149 12.6   74     5   3
+## 4    18     313 11.5   62     5   4
+## 5     6     253 14.3   56     5   5
+## 6    28     188 14.9   66     5   6
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Data exploration</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Ozone distribution is left skewed so we will use the log of Ozone to have a normal distribution.</li>
+</ul>
+
+<!--
+![plot of chunk unnamed-chunk-3](assets/fig/unnamed-chunk-3.png) 
+-->
+
+<ul>
+<li>The following correlation matrix shows that Wind and Temperature have strong correlation with Ozone:</li>
+</ul>
+
+<p><img src="assets/fig/unnamed-chunk-4.png" alt="plot of chunk unnamed-chunk-4"> </p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>The model for prediction</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Below we compare different linear regression models:</p>
+
+<pre><code class="r">library(caret)
+models &lt;- list(Temp = train(LogOzone ~ Temp, airquality2, method = &#39;lm&#39;),
+               &#39;Temp + Wind&#39; = train(LogOzone ~ Temp + Wind, airquality2, method = &#39;lm&#39;),
+               &#39;Temp + Wind + Solar.R&#39; = train(LogOzone ~ Temp + Wind + Solar.R, airquality2, method = &#39;lm&#39;))
+bwplot(resamples(models))
+</code></pre>
+
+<p><img src="assets/fig/unnamed-chunk-5.png" alt="plot of chunk unnamed-chunk-5"> </p>
+
+<p>We chose the third (<code>Temp + Wind + Solar.R</code>), which has lower RMSE and greater R<sup>2.</sup></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>How to use</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Bla bla </p>
+
+<p>&quot;Ozongassmolekyl&quot; by Ingvald Straume - Own work. Licensed under CC BY-SA 3.0 via Wikimedia Commons - <a href="http://commons.wikimedia.org/wiki/File:Ozongassmolekyl.png#mediaviewer/File:Ozongassmolekyl.png">http://commons.wikimedia.org/wiki/File:Ozongassmolekyl.png#mediaviewer/File:Ozongassmolekyl.png</a></p>
+
   </article>
   <!-- Presenter Notes -->
 </slide>
@@ -72,14 +152,32 @@
     <ul>
       <li>
       <a href="#" target="_self" rel='tooltip' 
-        data-slide=1 title='Read-And-Delete'>
+        data-slide=1 title='Intro'>
          1
       </a>
     </li>
     <li>
       <a href="#" target="_self" rel='tooltip' 
-        data-slide=2 title='Slide 2'>
+        data-slide=2 title='Dataset'>
          2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='Data exploration'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='The model for prediction'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title='How to use'>
+         5
       </a>
     </li>
   </ul>

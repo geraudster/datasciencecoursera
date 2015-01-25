@@ -11,3 +11,7 @@ A data frame with 154 observations on 6 variables.
 * `Temp`: Maximum daily temperature in degrees Fahrenheit at La Guardia Airport.
 
 For the purpose of this application, we use log(Ozone) instead of Ozone, to ensure the values are normally distributed.
+
+## Credits
+
+"Ozongassmolekyl" by Ingvald Straume - Own work. Licensed under CC BY-SA 3.0 via Wikimedia Commons - http://commons.wikimedia.org/wiki/File:Ozongassmolekyl.png#mediaviewer/File:Ozongassmolekyl.png

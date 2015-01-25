@@ -1,6 +1,7 @@
 library(markdown)
 shinyUI(
-  navbarPage('Ozone pollution',
+  navbarPage(div(img(src='Ozongassmolekyl.png', height='21px', width='32px'),
+                 'OzoneApp'),
              tabPanel('About',
                       includeMarkdown('about.md')),
              tabPanel('Explore data',
