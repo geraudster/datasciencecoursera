@@ -22,6 +22,9 @@ RUN apt-get -y install \
     supervisor \
     vim \
     wget
+RUN apt-get -y build-dep libcurl4-gnutls-dev
+RUN apt-get -y install libcurl4-gnutls-dev
+
 RUN wget http://download2.rstudio.org/rstudio-server-0.98.1087-amd64.deb
 RUN gdebi -n rstudio-server-0.98.1087-amd64.deb && rm -f rstudio-server-0.98.1087-amd64.deb
 RUN (adduser --disabled-password --gecos "" rstudio && echo "rstudio:rstudio"|chpasswd)
