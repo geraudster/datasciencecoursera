@@ -6,3 +6,4 @@ README.html
 .Rhistory
 shinyapps/
 .cache/
+.Rproj.user
