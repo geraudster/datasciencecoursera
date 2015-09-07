@@ -40,8 +40,8 @@
 
     apt-get -y install libcurl4-gnutls-dev
 
-     wget http://download2.rstudio.org/rstudio-server-0.98.1087-amd64.deb
-     gdebi -n rstudio-server-0.98.1087-amd64.deb && rm -f rstudio-server-0.98.1087-amd64.deb
+     wget http://download2.rstudio.org/rstudio-server-0.9xxxxx-amd64.deb # take the more recent version to avoid apparmor problems
+     gdebi -n rstudio-server-0.9xxxxx-amd64.deb && rm -f rstudio-server-*.deb
 
      (adduser --disabled-password --gecos "" rstudio && echo "rstudio:****"|chpasswd) # ignore error
      mkdir -p /etc/nginx/ssl
