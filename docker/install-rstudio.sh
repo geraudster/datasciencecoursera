@@ -7,8 +7,9 @@ read -p 'rstudio user password: ' -s PASSWORD
 echo
 
 echo '**** Adding CRAN repository...'
-echo 'deb http://ftp.igh.cnrs.fr/pub/CRAN/bin/linux/debian jessie-cran3/' >> /etc/apt/sources.list
-apt-key adv --keyserver keys.gnupg.net --recv-key 381BA480
+sed -i '/CRAN/d' /etc/apt/sources.list
+echo 'deb http://ftp.igh.cnrs.fr/pub/CRAN/bin/linux/ubuntu trusty/' >> /etc/apt/sources.list
+apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E084DAB9
 apt-get update && apt-get -y upgrade
 
 echo '**** Hacking locales...'
